@@ -1663,9 +1663,9 @@ static void start_unregistering(struct ctl_table_header *p)
 
 void sysctl_head_get(struct ctl_table_header *head)
 {
-        spin_lock(&sysctl_lock);
-        head->count++;
-        spin_unlock(&sysctl_lock);
+	spin_lock(&sysctl_lock);
+	head->count++;
+	spin_unlock(&sysctl_lock);
 }
 
 void sysctl_head_put(struct ctl_table_header *head)
