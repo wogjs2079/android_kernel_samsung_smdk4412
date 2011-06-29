@@ -1803,7 +1803,7 @@ out:
 	raw_spin_unlock_irq(&ctx->lock);
 }
 
-static int perf_event_refresh(struct perf_event *event, int refresh)
+int perf_event_refresh(struct perf_event *event, int refresh)
 {
 	/*
 	 * not supported on inherited events
@@ -1816,6 +1816,7 @@ static int perf_event_refresh(struct perf_event *event, int refresh)
 
 	return 0;
 }
+EXPORT_SYMBOL_GPL(perf_event_refresh);
 
 static void ctx_sched_out(struct perf_event_context *ctx,
 			  struct perf_cpu_context *cpuctx,
