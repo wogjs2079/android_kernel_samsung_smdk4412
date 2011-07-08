@@ -397,6 +397,7 @@ struct inodes_stat_t {
 #include <linux/semaphore.h>
 #include <linux/fiemap.h>
 #include <linux/rculist_bl.h>
+#include <linux/shrinker.h>
 #include <linux/atomic.h>
 
 #include <asm/byteorder.h>
@@ -1458,7 +1459,12 @@ struct super_block {
 #define FLAG_ASYNC_FSYNC        0x1
   	unsigned int fsync_flags;
 #endif
+	struct shrinker s_shrink;	/* per-sb shrinker handle */
 };
+
+/* superblock cache pruning functions */
+extern void prune_icache_sb(struct super_block *sb, int nr_to_scan);
+extern void prune_dcache_sb(struct super_block *sb, int nr_to_scan);
 
 extern struct timespec current_fs_time(struct super_block *sb);
 
