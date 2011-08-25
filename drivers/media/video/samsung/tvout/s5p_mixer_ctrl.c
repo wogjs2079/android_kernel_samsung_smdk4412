@@ -18,7 +18,7 @@
 #include <plat/clock.h>
 
 #include "hw_if/hw_if.h"
-#include <linux/pm_qos_params.h>
+#include <linux/pm_qos.h>
 
 static struct pm_qos_request_list bus_qos_pm_qos_req;
 static unsigned int qos_requested;
