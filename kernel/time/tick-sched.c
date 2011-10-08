@@ -425,25 +425,21 @@ out:
  *
  * When the next event is more than a tick into the future, stop the idle tick
  * Called when we start the idle loop.
- * This also enters into RCU extended quiescent state so that this CPU doesn't
- * need anymore to be part of any global grace period completion. This way
- * the tick can be stopped safely as we don't need to report quiescent states.
+ *
+ * If no use of RCU is made in the idle loop between
+ * tick_nohz_idle_enter() and tick_nohz_idle_exit() calls, then
+ * tick_nohz_idle_enter_norcu() should be called instead and the arch
+ * doesn't need to call rcu_idle_enter() and rcu_idle_exit() explicitly.
+ *
+ * Otherwise the arch is responsible of calling:
+ *
+ * - rcu_idle_enter() after its last use of RCU before the CPU is put
+ *  to sleep.
+ * - rcu_idle_exit() before the first use of RCU after the CPU is woken up.
  */
-void tick_nohz_idle_enter(void)
+void __tick_nohz_idle_enter(void)
 {
 	struct tick_sched *ts;
-
-	WARN_ON_ONCE(irqs_disabled());
-
-	/*
- 	 * Update the idle state in the scheduler domain hierarchy
- 	 * when tick_nohz_stop_sched_tick() is called from the idle loop.
- 	 * State will be updated to busy during the first busy tick after
- 	 * exiting idle.
- 	 */
-	set_cpu_sd_state_idle();
-
-	local_irq_disable();
 
 	ts = &__get_cpu_var(tick_cpu_sched);
 	/*
@@ -453,9 +449,6 @@ void tick_nohz_idle_enter(void)
 	 */
 	ts->inidle = 1;
 	tick_nohz_stop_sched_tick(ts);
-	rcu_idle_enter();
-
-	local_irq_enable();
 }
 
 /**
@@ -531,7 +524,7 @@ void tick_nohz_idle_exit(void)
 	ktime_t now;
 
 	local_irq_disable();
-	rcu_idle_exit();
+
 	if (ts->idle_active || (ts->inidle && ts->tick_stopped))
 		now = ktime_get();
 
