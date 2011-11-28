@@ -139,22 +139,22 @@ struct cpufreq_governor cpufreq_gov_interactive = {
         .owner = THIS_MODULE,
 };
 
-static inline cputime64_t get_cpu_idle_time_jiffy(unsigned int cpu,
-                                                  cputime64_t *wall)
+static inline u64 get_cpu_idle_time_jiffy(unsigned int cpu,
+                                                  u64 *wall)
 {
         u64 idle_time;
-        u64 cur_wall_time;
+        cputime64_t cur_wall_time;
         u64 busy_time;
 
         cur_wall_time = jiffies64_to_cputime64(get_jiffies_64());
 
-	busy_time = cputime64_add(kstat_cpu(cpu).cpustat.user,
-				  kstat_cpu(cpu).cpustat.system);
+	busy_time = kcpustat_cpu(cpu).cpustat[CPUTIME_USER] +
+		    kcpustat_cpu(cpu).cpustat[CPUTIME_SYSTEM];
 
-	busy_time = cputime64_add(busy_time, kstat_cpu(cpu).cpustat.irq);
-	busy_time = cputime64_add(busy_time, kstat_cpu(cpu).cpustat.softirq);
-	busy_time = cputime64_add(busy_time, kstat_cpu(cpu).cpustat.steal);
-	busy_time = cputime64_add(busy_time, kstat_cpu(cpu).cpustat.nice);
+	busy_time += kcpustat_cpu(cpu).cpustat[CPUTIME_IRQ];
+	busy_time += kcpustat_cpu(cpu).cpustat[CPUTIME_SOFTIRQ];
+	busy_time += kcpustat_cpu(cpu).cpustat[CPUTIME_STEAL];
+	busy_time += kcpustat_cpu(cpu).cpustat[CPUTIME_NICE];
 
         idle_time = cur_wall_time - busy_time;
         if (wall)
@@ -163,8 +163,8 @@ static inline cputime64_t get_cpu_idle_time_jiffy(unsigned int cpu,
         return jiffies_to_usecs(idle_time);
 }
 
-static inline cputime64_t get_cpu_idle_time(unsigned int cpu,
-                                            cputime64_t *wall)
+static inline u64 get_cpu_idle_time(unsigned int cpu,
+                                            u64 *wall)
 {
         u64 idle_time = get_cpu_idle_time_us(cpu, wall);
 

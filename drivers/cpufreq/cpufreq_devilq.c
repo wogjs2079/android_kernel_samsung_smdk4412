@@ -447,8 +447,8 @@ static void cpufreq_devil_timer(unsigned long data)
 
 	if (dbs_tuners_ins.ignore_nice) {
 
-		cur_nice = cputime64_sub(kstat_cpu(data).cpustat.nice,
-					 pcpu->idle_prev_cpu_nice);
+		cur_nice = kcpustat_cpu(data).cpustat[CPUTIME_NICE] -
+					 pcpu->idle_prev_cpu_nice;
 		/*
 		 * Assumption: nice time between sampling periods will
 		 * be less than 2^32 jiffies for 32 bit sys
@@ -478,8 +478,8 @@ static void cpufreq_devil_timer(unsigned long data)
 
 	if (dbs_tuners_ins.ignore_nice) {
 
-		cur_nice = cputime64_sub(kstat_cpu(data).cpustat.nice,
-					 pcpu->freq_change_prev_cpu_nice);
+		cur_nice = kcpustat_cpu(data).cpustat[CPUTIME_NICE] -
+					 pcpu->freq_change_prev_cpu_nice;
 
 		/*
 		 * Assumption: nice time between sampling periods will
@@ -626,7 +626,7 @@ static void cpufreq_devil_timer(unsigned long data)
 		pcpu->freq_change_time_in_idle = get_cpu_idle_time_us(data, &pcpu->freq_change_time);
 
 		if (dbs_tuners_ins.ignore_nice)
-			pcpu->freq_change_prev_cpu_nice = kstat_cpu(data).cpustat.nice;
+			pcpu->freq_change_prev_cpu_nice = kcpustat_cpu(data).cpustat[CPUTIME_NICE];
 	}
 
 
@@ -729,7 +729,7 @@ rearm:
 		pcpu->time_in_idle = get_cpu_idle_time_us(
 			data, &pcpu->idle_exit_time);
 		if (dbs_tuners_ins.ignore_nice)
-			pcpu->idle_prev_cpu_nice = kstat_cpu(data).cpustat.nice;
+			pcpu->idle_prev_cpu_nice = kcpustat_cpu(data).cpustat[CPUTIME_NICE];
 		mod_timer(&pcpu->cpu_timer,
 			  jiffies + get_jiffies_normalized(timer_rate));
 	}
@@ -769,7 +769,7 @@ static void cpufreq_devil_idle_start(void)
 				smp_processor_id(), &pcpu->idle_exit_time);
 			pcpu->timer_idlecancel = 0;
 			if (dbs_tuners_ins.ignore_nice)
-				pcpu->idle_prev_cpu_nice = kstat_cpu(smp_processor_id()).cpustat.nice;
+				pcpu->idle_prev_cpu_nice = kcpustat_cpu(smp_processor_id()).cpustat[CPUTIME_NICE];
 			mod_timer(&pcpu->cpu_timer,
 				  jiffies + get_jiffies_normalized(timer_rate));
 		}
@@ -822,7 +822,7 @@ static void cpufreq_devil_idle_end(void)
 					     &pcpu->idle_exit_time);
 		pcpu->timer_idlecancel = 0;
 		if (dbs_tuners_ins.ignore_nice)
-			pcpu->idle_prev_cpu_nice = kstat_cpu(smp_processor_id()).cpustat.nice;
+			pcpu->idle_prev_cpu_nice = kcpustat_cpu(smp_processor_id()).cpustat[CPUTIME_NICE];
 		mod_timer(&pcpu->cpu_timer,
 			  jiffies + get_jiffies_normalized(timer_rate));
 	}
@@ -891,7 +891,7 @@ static int cpufreq_devil_up_task(void *data)
 			pcpu->freq_change_time_in_idle =
 				get_cpu_idle_time_us(cpu, &pcpu->freq_change_time);
 
-			pcpu->freq_change_prev_cpu_nice = kstat_cpu(cpu).cpustat.nice;
+			pcpu->freq_change_prev_cpu_nice = kcpustat_cpu(cpu).cpustat[CPUTIME_NICE];
 
 
 			/*
@@ -954,7 +954,7 @@ static void cpufreq_devil_freq_down(struct work_struct *work)
 		pcpu->freq_change_time_in_idle =
 			get_cpu_idle_time_us(cpu, &pcpu->freq_change_time);
 
-		pcpu->freq_change_prev_cpu_nice = kstat_cpu(cpu).cpustat.nice;
+		pcpu->freq_change_prev_cpu_nice = kcpustat_cpu(cpu).cpustat[CPUTIME_NICE];
 
 		/*
 		 *  The pcpu->freq_change_time is shared by scaling up and down,
@@ -1941,7 +1941,7 @@ static int cpufreq_governor_devil(struct cpufreq_policy *policy,
 
 			if (dbs_tuners_ins.ignore_nice) {
 				pcpu->freq_change_prev_cpu_nice =
-					kstat_cpu(j).cpustat.nice;
+					kcpustat_cpu(j).cpustat[CPUTIME_NICE];
 			}
 		}
 
