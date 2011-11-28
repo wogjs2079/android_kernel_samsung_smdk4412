@@ -8259,7 +8259,6 @@ struct cpuacct {
 	/* cpuusage holds pointer to a u64-type object on every cpu */
 	u64 __percpu *cpuusage;
 	struct percpu_counter cpustat[CPUACCT_STAT_NSTATS];
-	struct cpuacct *parent;
 };
 
 struct cgroup_subsys cpuacct_subsys;
@@ -8276,6 +8275,13 @@ static inline struct cpuacct *task_ca(struct task_struct *tsk)
 {
 	return container_of(task_subsys_state(tsk, cpuacct_subsys_id),
 			    struct cpuacct, css);
+}
+
+static inline struct cpuacct *parent_ca(struct cpuacct *ca)
+{
+	if (!ca || !ca->css.cgroup->parent)
+		return NULL;
+	return cgroup_ca(ca->css.cgroup->parent);
 }
 
 /* create a new cpu accounting group */
@@ -8295,9 +8301,6 @@ static struct cgroup_subsys_state *cpuacct_create(
 	for (i = 0; i < CPUACCT_STAT_NSTATS; i++)
 		if (percpu_counter_init(&ca->cpustat[i], 0))
 			goto out_free_counters;
-
-	if (cgrp->parent)
-		ca->parent = cgroup_ca(cgrp->parent);
 
 	return &ca->css;
 
@@ -8465,7 +8468,7 @@ void cpuacct_charge(struct task_struct *tsk, u64 cputime)
 
 	ca = task_ca(tsk);
 
-	for (; ca; ca = ca->parent) {
+	for (; ca; ca = parent_ca(ca)) {
 		u64 *cpuusage = per_cpu_ptr(ca->cpuusage, cpu);
 		*cpuusage += cputime;
 	}
@@ -8507,7 +8510,7 @@ void cpuacct_update_stats(struct task_struct *tsk,
 
 	do {
 		__percpu_counter_add(&ca->cpustat[idx], val, batch);
-		ca = ca->parent;
+		ca = parent_ca(ca);
 	} while (ca);
 	rcu_read_unlock();
 }
