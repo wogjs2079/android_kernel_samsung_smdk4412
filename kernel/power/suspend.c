@@ -72,9 +72,9 @@ EXPORT_SYMBOL_GPL(freeze_wake);
  */
 void suspend_set_ops(const struct platform_suspend_ops *ops)
 {
-	mutex_lock(&pm_mutex);
+	lock_system_sleep();
 	suspend_ops = ops;
-	mutex_unlock(&pm_mutex);
+	unlock_system_sleep();
 }
 
 bool valid_state(suspend_state_t state)
