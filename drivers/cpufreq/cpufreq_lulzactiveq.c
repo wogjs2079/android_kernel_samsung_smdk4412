@@ -472,9 +472,8 @@ static void cpufreq_lulzactive_timer(unsigned long data)
 	if (!idle_exit_time)
 		goto exit;
 
-	delta_idle = (unsigned int) cputime64_sub(now_idle, time_in_idle);
-	delta_time = (unsigned int) cputime64_sub(pcpu->timer_run_time,
-						  idle_exit_time);
+	delta_idle = (unsigned int) now_idle - time_in_idle;
+	delta_time = (unsigned int) pcpu->timer_run_time - idle_exit_time;
 
 	/*
 	 * If timer ran less than 1ms after short-term sample started, retry.
@@ -508,10 +507,8 @@ static void cpufreq_lulzactive_timer(unsigned long data)
 	else
 		cpu_load = 100 * (delta_time - delta_idle) / delta_time;
 
-	delta_idle = (unsigned int) cputime64_sub(now_idle,
-						pcpu->freq_change_time_in_idle);
-	delta_time = (unsigned int) cputime64_sub(pcpu->timer_run_time,
-						  pcpu->freq_change_time);
+	delta_idle = (unsigned int) now_idle - pcpu->freq_change_time_in_idle;
+	delta_time = (unsigned int) pcpu->timer_run_time - pcpu->freq_change_time;
 
 	if (dbs_tuners_ins.ignore_nice) {
 
@@ -666,7 +663,7 @@ static void cpufreq_lulzactive_timer(unsigned long data)
 	 * minimum sample time.
 	 */
 	if (new_freq < pcpu->target_freq) {
-		if (cputime64_sub(pcpu->timer_run_time, pcpu->freq_change_down_time)
+		if (pcpu->timer_run_time - pcpu->freq_change_down_time
 		    < down_sample_time) {
 			if (dbs_tuners_ins.dvfs_debug) {
 				printk (KERN_ERR "LulzQ: [PUMP REARM DOWN]: CPU %lu, (%llu - %llu) < %lu\n",
@@ -676,7 +673,7 @@ static void cpufreq_lulzactive_timer(unsigned long data)
 		}
 	}
 	else {
-		if (cputime64_sub(pcpu->timer_run_time, pcpu->freq_change_up_time) <
+		if (pcpu->timer_run_time - pcpu->freq_change_up_time <
 		    up_sample_time) {
 			if (dbs_tuners_ins.dvfs_debug)  {
 				printk (KERN_ERR "LulzQ: [PUMP REARM UP]: CPU %lu, (%llu - %llu) < %lu\n",
@@ -690,8 +687,8 @@ static void cpufreq_lulzactive_timer(unsigned long data)
 	if (new_freq < pcpu->target_freq) {
         	if (dbs_tuners_ins.dvfs_debug) {
 	            printk (KERN_ERR "LulzQ: [PUMP DOWN NOW] CPU %lu, after %u (run: %llu - last down: %llu), last freq change: %lu\n", 
-        	            data, (unsigned int) cputime64_sub(pcpu->timer_run_time, pcpu->freq_change_down_time),
-                	    pcpu->timer_run_time, pcpu->freq_change_down_time, (unsigned long) cputime64_sub(pcpu->timer_run_time, pcpu->freq_change_time));
+        	            data, (unsigned int) pcpu->timer_run_time - pcpu->freq_change_down_time,
+                	    pcpu->timer_run_time, pcpu->freq_change_down_time, (unsigned long) pcpu->timer_run_time - pcpu->freq_change_time);
 	        }
 		pcpu->target_freq = new_freq;
 		spin_lock_irqsave(&down_cpumask_lock, flags);
@@ -701,8 +698,8 @@ static void cpufreq_lulzactive_timer(unsigned long data)
 	} else {
 		if (dbs_tuners_ins.dvfs_debug) {
 			printk (KERN_ERR "LulzQ: [PUMP UP NOW] CPU %lu, after %u (run: %llu - last up: %llu), last freq change: %lu\n", 
-					data, (unsigned int) cputime64_sub(pcpu->timer_run_time, pcpu->freq_change_up_time),
-					pcpu->timer_run_time, pcpu->freq_change_up_time, (unsigned long) cputime64_sub(pcpu->timer_run_time, pcpu->freq_change_time));
+					data, (unsigned int) pcpu->timer_run_time - pcpu->freq_change_up_time,
+					pcpu->timer_run_time, pcpu->freq_change_up_time, (unsigned long) pcpu->timer_run_time - pcpu->freq_change_time);
 		}
 		pcpu->target_freq = new_freq;
 		spin_lock_irqsave(&up_cpumask_lock, flags);
