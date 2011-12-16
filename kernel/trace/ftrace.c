@@ -27,6 +27,7 @@
 #include <linux/sysctl.h>
 #include <linux/slab.h>
 #include <linux/ctype.h>
+#include <linux/sort.h>
 #include <linux/list.h>
 #include <linux/hash.h>
 #include <linux/rcupdate.h>
@@ -3571,6 +3572,29 @@ static __init int ftrace_init_dyn_debugfs(struct dentry *d_tracer)
 	return 0;
 }
 
+static void ftrace_swap_recs(void *a, void *b, int size)
+{
+	struct dyn_ftrace *reca = a;
+	struct dyn_ftrace *recb = b;
+	struct dyn_ftrace t;
+
+	t = *reca;
+	*reca = *recb;
+	*recb = t;
+}
+
+static int ftrace_cmp_recs(const void *a, const void *b)
+{
+	const struct dyn_ftrace *reca = a;
+	const struct dyn_ftrace *recb = b;
+
+	if (reca->ip > recb->ip)
+		return 1;
+	if (reca->ip < recb->ip)
+		return -1;
+	return 0;
+}
+
 static int ftrace_process_locs(struct module *mod,
 			       unsigned long *start,
 			       unsigned long *end)
@@ -3633,6 +3657,11 @@ static int ftrace_process_locs(struct module *mod,
 
 	/* These new locations need to be initialized */
 	ftrace_new_pgs = pg;
+
+	/* Make each individual set of pages sorted by ips */
+	for (; pg; pg = pg->next)
+		sort(pg->records, pg->index, sizeof(struct dyn_ftrace),
+		     ftrace_cmp_recs, ftrace_swap_recs);
 
 	/*
 	 * Disable interrupts to prevent interrupts from executing
