@@ -1326,6 +1326,8 @@ struct sock *sk_clone(const struct sock *sk, const gfp_t priority)
 		sk_set_socket(newsk, NULL);
 		newsk->sk_wq = NULL;
 
+		sk_update_clone(sk, newsk);
+
 		if (newsk->sk_prot->sockets_allocated)
 			sk_sockets_allocated_inc(newsk);
 
