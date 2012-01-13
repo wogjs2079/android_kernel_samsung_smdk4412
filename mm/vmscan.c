@@ -1383,7 +1383,7 @@ static unsigned long isolate_lru_pages(unsigned long nr_to_scan,
 #ifndef CONFIG_DISABLE_LUMPY_RECLAIM
 			nr_lumpy_taken, nr_lumpy_dirty, nr_lumpy_failed,
 #endif
-			mode);
+			mode, file);
 	return nr_taken;
 }
 
