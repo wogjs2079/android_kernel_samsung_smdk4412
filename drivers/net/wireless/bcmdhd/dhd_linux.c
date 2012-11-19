@@ -1905,6 +1905,11 @@ dhd_rx_frame(dhd_pub_t *dhdp, int ifidx, void *pktbuf, int numpkt, uint8 chan)
 
 			if (!tout_ctrl)
 				tout_ctrl = DHD_PACKET_TIMEOUT_MS;
+#if defined(PNO_SUPPORT)
+			if (event.event_type == WLC_E_PFN_NET_FOUND) {
+				tout_ctrl = 7 * DHD_PACKET_TIMEOUT_MS;
+			}
+#endif /* PNO_SUPPORT */
 
 #ifdef WLBTAMP
 			if (event.event_type == WLC_E_BTA_HCI_EVENT) {
@@ -1912,11 +1917,6 @@ dhd_rx_frame(dhd_pub_t *dhdp, int ifidx, void *pktbuf, int numpkt, uint8 chan)
 			}
 #endif /* WLBTAMP */
 
-#if defined(PNO_SUPPORT)
-			if (event.event_type == WLC_E_PFN_NET_FOUND) {
-				tout_ctrl *= 2;
-			}
-#endif /* PNO_SUPPORT */
 		} else {
 			tout_rx = DHD_PACKET_TIMEOUT_MS;
 		}
