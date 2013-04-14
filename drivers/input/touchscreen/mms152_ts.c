@@ -1073,10 +1073,7 @@ AOSPROM {
 #endif
 			continue;
 		}
-#ifdef CONFIG_TOUCH_WAKE
-  if (!device_is_suspended())
-  {
-#endif
+
 		if (info->panel == 'M') {
 			input_mt_slot(info->input_dev, id);
 			input_mt_report_slot_state(info->input_dev,
@@ -1172,7 +1169,6 @@ AOSPROM {
 		}
 		touch_is_pressed++;
 #ifdef CONFIG_TOUCH_WAKE
- }
   touch_press();
 #endif
 	}
