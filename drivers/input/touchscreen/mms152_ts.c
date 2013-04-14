@@ -4066,6 +4066,11 @@ static int mms_ts_resume(struct device *dev)
 	/* Because irq_type by EXT_INTxCON register is changed to low_level
 	 *  after wakeup, irq_type set to falling edge interrupt again.
 	 */
+#ifdef CONFIG_SLIDE_TO_WAKE
+	if (s2w_enabled)
+		disable_irq_wake(info->irq);
+	else
+#endif
 	enable_irq(info->irq);
 
 	return 0;
