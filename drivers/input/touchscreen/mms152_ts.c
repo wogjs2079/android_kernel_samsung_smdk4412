@@ -471,6 +471,61 @@ struct tsp_cmd tsp_cmds[] = {
 };
 #endif
 
+
+#ifdef CONFIG_SLIDE_TO_WAKE
+static struct input_dev *slide2wake_dev;
+extern void request_suspend_state(int);
+extern int get_suspend_state(void);
+static DEFINE_MUTEX(s2w_lock);
+static DEFINE_SEMAPHORE(s2w_sem);
+bool s2w_enabled = false;
+static unsigned int wake_start = -1;
+static unsigned int wake_start_y = -100;
+static unsigned int x_lo;
+static unsigned int x_hi;
+static unsigned int y_tolerance = 132;
+
+/*static void slide2wake_force_wakeup(void)
+{
+	int state;
+
+	mutex_lock(&s2w_lock);
+	state = get_suspend_state();
+	printk(KERN_ERR "[TSP] suspend state: %d\n", state);
+	if (state != 0)
+		request_suspend_state(0);
+	msleep(100);
+	mutex_unlock(&s2w_lock);
+}*/
+
+void slide2wake_setdev(struct input_dev *input_device)
+{
+	slide2wake_dev = input_device;
+	pr_alert("SLIDE2WAKE_SETDEV");
+}
+
+static void slide2wake_presspwr(struct work_struct *slide2wake_presspwr_work)
+{
+	pr_alert("SLIDE2WAKE_PRESSPWR");
+
+	input_event(slide2wake_dev, EV_KEY, KEY_POWER, 1);
+	input_event(slide2wake_dev, EV_SYN, 0, 0);
+	msleep(100);
+	input_event(slide2wake_dev, EV_KEY, KEY_POWER, 0);
+	input_event(slide2wake_dev, EV_SYN, 0, 0);
+	msleep(1000);
+	mutex_unlock(&s2w_lock);
+}
+
+static DECLARE_WORK(slide2wake_presspwr_work, slide2wake_presspwr);
+
+void slide2wake_pwrtrigger(void)
+{
+	if (mutex_trylock(&s2w_lock))
+		schedule_work(&slide2wake_presspwr_work);
+}
+#endif
+
 #if TOUCH_BOOSTER
 static void change_dvfs_lock(struct work_struct *work)
 {
@@ -1061,8 +1116,30 @@ static irqreturn_t mms_ts_interrupt(int irq, void *dev_id)
 				}
 			}
 #endif
+#ifdef CONFIG_SLIDE_TO_WAKE
+			// slide2wake trigger
+			if (wake_start == i && x > x_hi
+			&& 	abs(wake_start_y - y) < y_tolerance ) {
+				printk(KERN_ERR "[TSP] slide2wake up at: %4d\n",
+					x);
+				slide2wake_pwrtrigger();
+			}
+			wake_start = -1;
+#endif
 			continue;
 		}
+#ifdef CONFIG_SLIDE_TO_WAKE
+		// slide2wake gesture start
+		if (s2w_enabled && !info->enabled) {
+			if (x < x_lo) {
+				printk(KERN_ERR "[TSP] slide2wake down at: %4d\n",
+					x);
+				wake_start = i;
+				wake_start_y = y;
+			}
+		}
+#endif
+
 #ifdef CONFIG_TOUCH_WAKE
   if (!device_is_suspended())
   {
@@ -3855,6 +3932,33 @@ static ssize_t show_intensity_logging_off(struct device *dev,
 
 #endif
 
+#ifdef CONFIG_SLIDE_TO_WAKE
+static ssize_t slide2wake_show(struct device *dev,
+				  struct device_attribute *attr, char *buf)
+{
+	return sprintf(buf, "%d\n", s2w_enabled);
+}
+
+static ssize_t slide2wake_store(struct device *dev,
+				   struct device_attribute *attr,
+				   const char *buf, size_t size)
+{
+	int ret;
+	unsigned int value;
+
+	ret = sscanf(buf, "%d\n", &value);
+
+	if (ret != 1)
+		return -EINVAL;
+
+	s2w_enabled = value ? true : false;
+
+	return size;
+}
+static DEVICE_ATTR(tsp_slide2wake, S_IRUGO | S_IWUSR | S_IWGRP,
+	slide2wake_show, slide2wake_store);
+#endif
+
 static DEVICE_ATTR(close_tsp_test, S_IRUGO, show_close_tsp_test, NULL);
 static DEVICE_ATTR(cmd, S_IWUSR | S_IWGRP, NULL, store_cmd);
 static DEVICE_ATTR(cmd_status, S_IRUGO, show_cmd_status, NULL);
@@ -3871,6 +3975,9 @@ static struct attribute *sec_touch_facotry_attributes[] = {
 	&dev_attr_cmd.attr,
 	&dev_attr_cmd_status.attr,
 	&dev_attr_cmd_result.attr,
+#ifdef CONFIG_SLIDE_TO_WAKE
+	&dev_attr_tsp_slide2wake.attr,
+#endif
 #ifdef ESD_DEBUG
 	&dev_attr_intensity_logging_on.attr,
 	&dev_attr_intensity_logging_off.attr,
@@ -3901,7 +4008,11 @@ static int mms_ts_suspend(struct device *dev)
 #endif
 	dev_notice(&info->client->dev, "%s: users=%d\n", __func__,
 		   info->input_dev->users);
-
+#ifdef CONFIG_SLIDE_TO_WAKE
+	if (s2w_enabled)
+		enable_irq_wake(info->irq);
+	else
+#endif
 	disable_irq(info->irq);
 	info->enabled = false;
 	touch_is_pressed = 0;
@@ -3909,6 +4020,9 @@ static int mms_ts_suspend(struct device *dev)
 	info->tsp_lcdfreq_flag = 0;
 #endif
 	release_all_fingers(info);
+#ifdef CONFIG_SLIDE_TO_WAKE
+	if (!s2w_enabled)
+#endif
 	info->pdata->power(0);
 	info->sleep_wakeup_ta_check = info->ta_status;
 	/* This delay needs to prevent unstable POR by
@@ -4061,6 +4175,12 @@ static int __devinit mms_ts_probe(struct i2c_client *client,
 		info->max_x = 720;
 		info->max_y = 1280;
 	}
+
+#ifdef CONFIG_SLIDE_TO_WAKE
+	x_lo = info->max_x / 10 * 1;	/* 10% display width */
+	x_hi = info->max_x / 10 * 9;	/* 90% display width */
+	y_tolerance = info->max_y / 10 * 3 / 2;
+#endif
 
 	i2c_set_clientdata(client, info);
 

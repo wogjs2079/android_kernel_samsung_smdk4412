@@ -995,6 +995,12 @@ config TOUCHSCREEN_ATMEL_MXT540S
 	  To compile this driver as a module, choose M here: the
 	  module will be called mxt540s.
 
+config SLIDE_TO_WAKE
+	bool "Slide2wake support"
+	default y
+	help
+	  Say Y here if you want to use Slide2wake.
+
 source "drivers/input/touchscreen/wacom/Kconfig"
 
 endif

@@ -525,6 +525,9 @@ static int s3c24xx_i2c_set_master(struct s3c24xx_i2c *i2c)
  *
  * this starts an i2c transfer
 */
+#ifdef CONFIG_SLIDE_TO_WAKE
+extern bool s2w_enabled;
+#endif
 
 static int s3c24xx_i2c_doxfer(struct s3c24xx_i2c *i2c,
 			      struct i2c_msg *msgs, int num)
@@ -532,8 +535,11 @@ static int s3c24xx_i2c_doxfer(struct s3c24xx_i2c *i2c,
 	unsigned long iicstat, timeout;
 	int spins = 20;
 	int ret;
-
+#ifdef CONFIG_SLIDE_TO_WAKE
+	if (i2c->suspended && !s2w_enabled)
+#else
 	if (i2c->suspended)
+#endif
 		return -EIO;
 
 	ret = s3c24xx_i2c_set_master(i2c);
@@ -625,7 +631,11 @@ static int s3c24xx_i2c_xfer(struct i2c_adapter *adap,
 	int retry;
 	int ret;
 
+#ifdef CONFIG_SLIDE_TO_WAKE
+	if (i2c->suspended && !s2w_enabled)
+#else
 	if (i2c->suspended)
+#endif
 	{
 		dev_err(i2c->dev, "I2C is not initialzed.\n");
 		dump_i2c_register(i2c);
