@@ -10,11 +10,7 @@ else
 	exit 1
 fi
 
-if [ "$TARGET" = "i317" ] || [ "$TARGET" = "att" ] || [ "$TARGET" = "t889" ] || [ "$TARGET" = "tmo" ]; then
-TARGET=t0lte
-fi
-
-version=Devil-$TARGET-SAMSUNG-0.7.2_$(date +%Y%m%d)
+version=Devil-$TARGET-SAMSUNG-0.8.6_$(date +%Y%m%d)
 
 if [ "$TARGET" = "i9300" ] ; then
 CUSTOM_PATH=i9300
@@ -46,9 +42,13 @@ elif [ "$(whoami)" == "rollus" ]; then
         TOOLCHAIN_PATH="/home/rollus/android-toolchain-eabi/bin/"
 fi
 TOOLCHAIN="$TOOLCHAIN_PATH/arm-eabi-"
-ROOTFS_PATH="$KERNEL_PATH/ramdisks/ramdisk-samsung-$TARGET"
 
 defconfig=samsung_"$TARGET"_defconfig
+
+if [ "$TARGET" = "i317" ] || [ "$TARGET" = "att" ] || [ "$TARGET" = "t889" ] || [ "$TARGET" = "tmo" ]; then
+TARGET=t0lte
+fi
+ROOTFS_PATH="$KERNEL_PATH/ramdisks/ramdisk-samsung-$TARGET"
 
 export KBUILD_BUILD_VERSION="$version"
 export KERNELDIR=$KERNEL_PATH
