@@ -77,9 +77,9 @@ chmod 644 *.rc
 chmod 750 init*
 chmod 640 fstab*
 chmod 644 default.prop
+done
 chmod 750 $ROOTFS_PATH/sbin/init*
 chmod a+x $ROOTFS_PATH/sbin/*.sh
-done
 cd $KERNEL_PATH
 
 if [ "$2" = "clean" ]; then
