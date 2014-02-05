@@ -482,11 +482,11 @@ static void sdcardfs_put_link(struct dentry *dentry, struct nameidata *nd,
 }
 #endif
 
-static int sdcardfs_permission(struct inode *inode, int mask, unsigned int flags)
+static int sdcardfs_permission(struct inode *inode, int mask)
 {
 	int err;
 
-	if (flags & IPERM_FLAG_RCU)
+	if (mask & MAY_NOT_BLOCK)
 		return -ECHILD;
 	
 	/*
