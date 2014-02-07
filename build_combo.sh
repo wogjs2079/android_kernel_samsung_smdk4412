@@ -22,7 +22,7 @@ MODE=DUAL
 fi
 
 
-displayversion=Devil2-2.4.8e
+displayversion=Devil2-2.4.9
 
 version=$displayversion-$TARGET-$MODE-$(date +%Y%m%d)
 
