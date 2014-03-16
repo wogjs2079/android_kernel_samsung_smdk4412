@@ -61,7 +61,7 @@ $BB mount -o rw,remount rootfs
 $BB mount -o rw,remount /
 
 $BB echo "trying to mount carrier as ext4:"
-$BB mount -t ext4 -o rw,seclabel,nosuid,nodev,noatime,user_xattr,barrier=1,journal_async_commit,data=ordered,noauto_da_al loc,discard $CARRIER /carrier
+$BB mount -t ext4 -o noatime,nodiratime,data=writeback,barrier=0,discard,nosuid,nodev,noauto_da_alloc,journal_async_commit,errors=panic $CARRIER /carrier
 
 $BB echo "trying to mount .secondrom as ext4:"
 $BB mount -t ext4 -o noatime,nodiratime,data=writeback,barrier=0,discard,nosuid,nodev,noauto_da_alloc,journal_async_commit,errors=panic $DATABLOCK /.secondrom
@@ -81,6 +81,8 @@ else
    $BB mount -t ext4 -o rw,noatime,nodiratime,data=writeback,barrier=0,discard $SYSTEM /system
    $BB mount -t f2fs -o rw,noatime,nodiratime,discard $SYSTEM /system
 fi
+
+$BB mkdir -p /system/etc/init.d
 
 #move .secondrom folder back to the original location if android moved it to a subfolder
 if $BB [ -d /.secondrom/media/0/.secondrom ];then
@@ -210,7 +212,7 @@ $BB echo "# usb connection workaround, needed because of broken default.prop exe
 $BB echo "/system/bin/setprop persist.sys.usb.config mtp,adb" >> /system/etc/init.d/15devil
 $BB chmod a+x /system/etc/init.d/15devil
 
-setproperties
+#setproperties
 
 echo $KV > /.secondrom/media/.devil
 
