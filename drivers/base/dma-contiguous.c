@@ -207,7 +207,7 @@ return -ENOSPC;
 if (!size)
 return -EINVAL;
 /* Sanitise input arguments */
-alignment = PAGE_SIZE << max(MAX_ORDER, pageblock_order);
+alignment = PAGE_SIZE << max(MAX_ORDER -1, pageblock_order);
 base = ALIGN(base, alignment);
 size = ALIGN(size, alignment);
 limit &= ~(alignment - 1);
