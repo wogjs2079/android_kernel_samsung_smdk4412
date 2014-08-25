@@ -47,14 +47,13 @@ KERNEL_PATH=$PWD
 
 # Set toolchain and root filesystem path
 if [ "$(whoami)" == "dominik" ]; then
-	#TOOLCHAIN_PATH="/home/dominik/android/android_4.2/prebuilts/gcc/linux-x86/arm/arm-eabi-4.6/bin"
-	#TOOLCHAIN_PATH="/home/dominik/android/android_4.2/prebuilt/linux-x86/toolchain/android-toolchain-eabi-4.8-2013.07/bin"
-	TOOLCHAIN_PATH="/home/dominik/android/android_4.2/prebuilt/linux-x86/toolchain/android-toolchain-eabi-4.8-2013.12/bin"
-	#TOOLCHAIN_PATH="/home/dominik/android/android_4.2/prebuilts/gcc/linux-x86/arm/arm-eabi-4.7.2/bin"
+#	TOOLCHAIN_PATH="/home/dominik/android/android_4.2/prebuilt/linux-x86/toolchain/android-toolchain-eabi-4.8-2013.12/bin"
+	TOOLCHAIN_PATH="../../mediatek/toolchain/arm-linux-androideabi-4.6/bin"
 elif [ "$(whoami)" == "rollus" ]; then
 	TOOLCHAIN_PATH="/home/rollus/android-toolchain-eabi/bin/"
 fi
-TOOLCHAIN="$TOOLCHAIN_PATH/arm-eabi-"
+#TOOLCHAIN="$TOOLCHAIN_PATH/arm-eabi-"
+TOOLCHAIN="$TOOLCHAIN_PATH/arm-linux-androideabi-"
 ROOTFS_PATH="$KERNEL_PATH/ramdisks/$TARGET-combo"
 MODULESDIR="$KERNEL_PATH/ramdisks/modules"
 MODULES="$KERNEL_PATH/ramdisks/modules/lib/modules"
@@ -63,7 +62,7 @@ defconfig=cyanogenmod_"$TARGET"_defconfig
 
 export LOCALVERSION="-$displayversion"
 export KERNELDIR=$KERNEL_PATH
-export CROSS_COMPILE=$TOOLCHAIN
+export CROSS_COMPILE="ccache $TOOLCHAIN"
 export ARCH=arm
 
 export USE_SEC_FIPS_MODE=true
