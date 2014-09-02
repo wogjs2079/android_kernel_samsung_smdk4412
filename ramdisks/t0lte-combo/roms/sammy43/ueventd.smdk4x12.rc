@@ -14,6 +14,8 @@
 /dev/fimg2d               0666   system     graphics
 /dev/i2c-2                0660   system     system
 /dev/i2c-5                0660   system     system
+# HDMI DDC
+/dev/i2c-6                0660   system     system
 /dev/i2c-7                0660   system     system
 /dev/CEC                  0660   system     system
 /dev/HPD                  0660   system     system
@@ -40,6 +42,7 @@
 /dev/ttyUSB2              0660   system     system
 /dev/hsic*                0660   system     radio
 /dev/usb/lp*              0660   system     usb
+/dev/ttyGS0               0660   system     system
 
 # sensor sysfs properties
 /sys/devices/virtual/input/input*   poll_delay  0660  system   radio

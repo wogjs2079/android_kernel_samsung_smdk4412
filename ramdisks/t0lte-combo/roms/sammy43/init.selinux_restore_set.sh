@@ -45,3 +45,8 @@ touch /system/etc/selinux_restore
 chmod 664 /system/etc/selinux_restore
 mount -o ro,remount,barrier=1 /system
 echo "init:init.selinux_restore_set.sh : touch done " > /dev/kmsg
+SELINUX_ENFORCE=$(getprop ro.build.selinux.enforce)
+if [ "$SELINUX_ENFORCE" == "1" ]; then
+	setenforce 1
+	echo "init:init.selinux_restore_set.sh : set enforcing" > /dev/kmsg
+fi
