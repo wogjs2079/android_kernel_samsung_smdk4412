@@ -869,6 +869,16 @@ void account_system_vtime(struct task_struct *curr)
 }
 EXPORT_SYMBOL_GPL(account_system_vtime);
 
+#endif /* CONFIG_IRQ_TIME_ACCOUNTING */
+#ifdef CONFIG_PARAVIRT
+static inline u64 steal_ticks(u64 steal)
+{
+if (unlikely(steal > NSEC_PER_SEC))
+return div_u64(steal, TICK_NSEC);
+return __iter_div_u64_rem(steal, TICK_NSEC, &steal);
+}
+#endif
+
 static void update_rq_clock_task(struct rq *rq, s64 delta)
 {
 /*
