@@ -49,7 +49,7 @@ struct workqueue_struct *suspend_work_queue;
 struct workqueue_struct *sync_work_queue;
 struct wake_lock main_wake_lock;
 struct wake_lock sync_wake_lock;
-suspend_state_t requested_suspend_state = PM_SUSPEND_FREEZE;
+suspend_state_t requested_suspend_state = PM_SUSPEND_MEM;
 static struct wake_lock unknown_wakeup;
 static struct wake_lock suspend_backoff_lock;
 
@@ -443,6 +443,9 @@ static void suspend(struct work_struct *work)
 	if (current_event_num == entry_event_num) {
 		if (debug_mask & DEBUG_SUSPEND)
 			pr_info("suspend: pm_suspend returned with no event\n");
+		wake_lock_timeout(&unknown_wakeup, HZ / 2);
+	} else if (ret) {
+		pr_info("PM: suspend returned(%d)\n", ret);
 		wake_lock_timeout(&unknown_wakeup, HZ / 2);
 	}
 }
