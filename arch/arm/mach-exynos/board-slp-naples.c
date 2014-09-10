@@ -78,6 +78,7 @@
 #if defined(CONFIG_VIDEO_SAMSUNG_S5P_MFC) || defined(CONFIG_VIDEO_MFC5X)
 #include <plat/s5p-mfc.h>
 #endif
+#include <plat/fb-s5p.h>
 
 #include <mach/map.h>
 #include <mach/spi-clocks.h>
@@ -101,7 +102,6 @@
 
 #include <mach/regs-pmu.h>
 
-#include <../../../drivers/video/samsung/s3cfb.h>
 #include <mach/dev-sysmmu.h>
 
 #ifdef CONFIG_EXYNOS4_SETUP_THERMAL

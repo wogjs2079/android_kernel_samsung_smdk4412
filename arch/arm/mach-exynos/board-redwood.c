@@ -76,6 +76,7 @@
 #if defined(CONFIG_VIDEO_SAMSUNG_S5P_MFC) || defined(CONFIG_VIDEO_MFC5X)
 #include <plat/s5p-mfc.h>
 #endif
+#include <plat/fb-s5p.h>
 
 #ifdef CONFIG_I2C_SI4705
 #include <linux/si4705_pdata.h>
@@ -105,7 +106,6 @@
 
 #include <mach/regs-pmu.h>
 
-#include <../../../drivers/video/samsung/s3cfb.h>
 #include <mach/dev-sysmmu.h>
 
 #include "board-mobile.h"
