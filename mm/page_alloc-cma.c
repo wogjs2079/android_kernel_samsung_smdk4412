@@ -2385,7 +2385,7 @@ __alloc_pages_slowpath(gfp_t gfp_mask, unsigned int order,
 #else
 	unsigned long oom_invoke_timeout = jiffies + HZ;
 #endif /* CONFIG_SEC_OOM_KILLER */
-#endif
+#endif /* CONFIG_ANDROID_WIP */
 
 	/*
 	 * In the slowpath, we sanity check order to avoid ever trying to
@@ -2511,7 +2511,7 @@ rebalance:
 #ifdef CONFIG_ANDROID_WIP
 			if (did_some_progress)
 				pr_info("time's up : calling "
-						"__alloc_pages_may_oom\n");
+					"__alloc_pages_may_oom(o:%d, gfp:0x%x)\n", order, gfp_mask);
 #endif
 			page = __alloc_pages_may_oom(gfp_mask, order,
 					zonelist, high_zoneidx,
@@ -2538,6 +2538,9 @@ rebalance:
 					goto nopage;
 			}
 
+#ifdef CONFIG_SEC_OOM_KILLER
+			oom_invoke_timeout = jiffies + HZ/4;
+#endif
 			goto restart;
 		}
 

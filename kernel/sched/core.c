@@ -84,6 +84,8 @@
 #define CREATE_TRACE_POINTS
 #include <trace/events/sched.h>
 
+#include <linux/cpufreq_slp.h> //added by samsung kitkat source drop
+
 ATOMIC_NOTIFIER_HEAD(migration_notifier_head);
 
 void start_bandwidth_timer(struct hrtimer *period_timer, ktime_t period)
@@ -3490,7 +3492,7 @@ need_resched:
 #endif
 		++*switch_count;
 
-//		slp_store_task_history(cpu, prev);
+		slp_store_task_history(cpu, prev); //samsung kitkat source drop
 
 		context_switch(rq, prev, next); /* unlocks the rq */
 		/*
