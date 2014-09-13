@@ -183,11 +183,24 @@ unsigned int boost_freq = 700000;
 bool touch_boost_enabled = true;
 
 int touch_is_pressed;
+
+#ifdef CONFIG_TOUCH_WAKE
+static DEFINE_MUTEX(touchwake_lock);
 static unsigned int wake_start = -1;
 static unsigned int wake_start_y = -100;
 static unsigned int x_lo;
 static unsigned int x_hi;
 static unsigned int y_tolerance = 132;
+extern void request_suspend_state(int);
+extern int get_suspend_state(void);
+bool touch_wake_enabled = false;
+bool s2w_enabled = false;
+bool suspended = false;
+int touchwake_irq = -1;
+int touch_counter = 0;
+int release_counter = 0;
+unsigned long doubletap_time[2] = {0, 0};
+#endif
 
 #define ISC_DL_MODE	1
 
@@ -733,6 +746,7 @@ static inline void mms_pwr_on_reset(struct mms_ts_info *info)
 	 * Find the right value */
 	msleep(250);
 }
+
 static void release_all_fingers(struct mms_ts_info *info)
 {
 	struct i2c_client *client = info->client;
@@ -868,6 +882,52 @@ static void melfas_lcd_cb(struct tsp_lcd_callbacks *cb, bool en)
 	}
 }
 #endif
+
+#ifdef CONFIG_TOUCH_WAKE
+static void touchwake_force_wakeup(void)
+{
+ 	int state;
+
+ 	mutex_lock(&touchwake_lock);
+ 	state = get_suspend_state();
+ 	printk(KERN_ERR "[TSP] suspend state: %d\n", state);
+ 	if (state != 0)
+ 	request_suspend_state(0);
+ 	msleep(100);
+ 	mutex_unlock(&touchwake_lock);
+}
+
+static void touch_reset(void)
+{
+	touch_counter = 0;
+	release_counter = 0;
+}
+
+static void check_touch_press(bool pressed)
+{
+    if(pressed && touch_counter == 0)
+    {
+	doubletap_time[1] = jiffies;
+	touch_counter++;
+    }
+    else if (pressed && touch_counter == 1 && release_counter == 1)
+    {
+	doubletap_time[0] = jiffies;
+	touch_reset();
+	if(doubletap_time[0] - doubletap_time[1] < 50) {
+	    doubletap_time[0] = 0;
+	    doubletap_time[1] = 0;
+	    touch_press();
+	    touchwake_force_wakeup();
+   	}
+    } 
+    else if(!pressed && release_counter == 0)
+	release_counter++;
+    else
+	touch_reset();
+}
+#endif
+    
 
 static irqreturn_t mms_ts_interrupt(int irq, void *dev_id)
 {
@@ -1086,10 +1146,11 @@ static irqreturn_t mms_ts_interrupt(int irq, void *dev_id)
 			// slide2wake trigger
 			if (wake_start == i && x > x_hi
 			&& 	abs(wake_start_y - y) < y_tolerance
-			&& get_touchoff_delay() == 0 ) {
+			&& s2w_enabled && touch_wake_enabled && suspended) {
 				printk(KERN_ERR "[TSP] slide2wake up at: %4d\n",
 					x);
 				touch_press();
+				touchwake_force_wakeup();
 			}
 			wake_start = -1;
 #endif
@@ -1204,11 +1265,13 @@ static irqreturn_t mms_ts_interrupt(int irq, void *dev_id)
 #endif
 		}
 		touch_is_pressed++;
-#ifdef CONFIG_TOUCH_WAKE
-if (get_touchoff_delay() != 0)
-  touch_press();
-#endif
 	}
+#ifdef CONFIG_TOUCH_WAKE
+if (!s2w_enabled && touch_wake_enabled && suspended) {
+printk(KERN_ERR "[TSP] check_touch_press: %d\n", !!touch_is_pressed);
+check_touch_press(!!touch_is_pressed);
+}
+#endif
 	input_sync(info->input_dev);
 
 #if TOUCH_BOOSTER
@@ -4230,14 +4293,26 @@ static int mms_ts_suspend(struct device *dev)
 #endif
 	dev_notice(&info->client->dev, "%s: users=%d\n", __func__,
 		   info->input_dev->users);
-
-	disable_irq(info->irq);
+#ifdef CONFIG_TOUCH_WAKE
+	suspended = true;
+	if (touch_wake_enabled) {
+	    enable_irq_wake(info->irq);
+	} else {
+#else
+	    disable_irq(info->irq);
+#endif
+#ifdef CONFIG_TOUCH_WAKE
+	}
+#endif
 	info->enabled = false;
 	touch_is_pressed = 0;
 #ifdef CONFIG_LCD_FREQ_SWITCH
 	info->tsp_lcdfreq_flag = 0;
 #endif
 	release_all_fingers(info);
+#ifdef CONFIG_TOUCH_WAKE
+	if (!touch_wake_enabled)
+#endif
 	info->pdata->power(0);
 	info->sleep_wakeup_ta_check = info->ta_status;
 	/* This delay needs to prevent unstable POR by
@@ -4287,7 +4362,17 @@ static int mms_ts_resume(struct device *dev)
 	/* Because irq_type by EXT_INTxCON register is changed to low_level
 	 *  after wakeup, irq_type set to falling edge interrupt again.
 	 */
+#ifdef CONFIG_TOUCH_WAKE
+	suspended = false;
+	if (touch_wake_enabled) {
+	    disable_irq_wake(info->irq);
+	} else {
+#else
 	enable_irq(info->irq);
+#endif
+#ifdef CONFIG_TOUCH_WAKE
+	}
+#endif
 
 	return 0;
 }
@@ -4296,44 +4381,58 @@ static int mms_ts_resume(struct device *dev)
 #ifdef CONFIG_HAS_EARLYSUSPEND
 static void mms_ts_early_suspend(struct early_suspend *h)
 {
-#ifndef CONFIG_TOUCH_WAKE
+//#ifndef CONFIG_TOUCH_WAKE
 	struct mms_ts_info *info;
 	info = container_of(h, struct mms_ts_info, early_suspend);
 	mms_ts_suspend(&info->client->dev);
-#endif
+//#endif
 }
 
 static void mms_ts_late_resume(struct early_suspend *h)
 {
-#ifndef CONFIG_TOUCH_WAKE
+//#ifndef CONFIG_TOUCH_WAKE
 	struct mms_ts_info *info;
 	info = container_of(h, struct mms_ts_info, early_suspend);
 	mms_ts_resume(&info->client->dev);
-#endif
+//#endif
 }
 #endif
 
-#ifdef CONFIG_TOUCH_WAKE
+/*#ifdef CONFIG_TOUCH_WAKE
 static struct mms_ts_info * touchwake_data;
-void touchscreen_disable(void)
+void touchscreen_disable(bool disable)
 {
-  if (likely(touchwake_data != NULL))
+  if (likely(touchwake_data != NULL)) {
+    touch_disable = disable;    
     mms_ts_suspend(&touchwake_data->client->dev);
+  } 
 
     return;
 }
 EXPORT_SYMBOL(touchscreen_disable);
 
-void touchscreen_enable(void)
+void touchscreen_enable(bool touchwake_enabled)
 {
-  if (likely(touchwake_data != NULL))
+  if (likely(touchwake_data != NULL)) {
+    touch_disable = !touchwake_enabled;
     mms_ts_resume(&touchwake_data->client->dev);
+  }
 
     return;
 }
 EXPORT_SYMBOL(touchscreen_enable);
 #endif
+*/
 
+#ifdef CONFIG_TOUCH_WAKE
+void set_touchwake_irq(int irq)
+{
+    touchwake_irq = irq;
+
+    return;
+}
+EXPORT_SYMBOL(touchwake_irq);
+#endif
 
 static int __devinit mms_ts_probe(struct i2c_client *client,
 				  const struct i2c_device_id *id)
@@ -4496,16 +4595,17 @@ static int __devinit mms_ts_probe(struct i2c_client *client,
 	info->irq = client->irq;
 
 #ifdef CONFIG_HAS_EARLYSUSPEND
-	info->early_suspend.level = EARLY_SUSPEND_LEVEL_STOP_DRAWING;
+	info->early_suspend.level = EARLY_SUSPEND_LEVEL_BLANK_SCREEN + 21;
 	info->early_suspend.suspend = mms_ts_early_suspend;
 	info->early_suspend.resume = mms_ts_late_resume;
 	register_early_suspend(&info->early_suspend);
 #endif
 
 #ifdef CONFIG_TOUCH_WAKE
-  touchwake_data = info;
+  /*touchwake_data = info;
   	if (touchwake_data == NULL)
-		pr_err("[TOUCHWAKE] Failed to set touchwake_data\n");
+		pr_err("[TOUCHWAKE] Failed to set touchwake_data\n");*/
+	set_touchwake_irq(info->irq);
   x_lo = info->max_x / 10 * 1;  /* 10% display width */
   x_hi = info->max_x / 10 * 9;  /* 90% display width */
   y_tolerance = info->max_y / 10 * 3 / 2;
@@ -4543,6 +4643,7 @@ static int __devinit mms_ts_probe(struct i2c_client *client,
 	if (ret)
 		dev_err(&client->dev, "Failed to create sysfs group\n");
 #endif
+	device_init_wakeup(&client->dev, 1);
 	return 0;
 
 err_req_irq:
@@ -4612,6 +4713,17 @@ void update_boost_freq (unsigned int input_boost_freq) {
 
 void update_boost_enabled (bool input_boost_enabled) {
 	touch_boost_enabled = input_boost_enabled;
+}
+#endif
+
+#ifdef CONFIG_TOUCH_WAKE
+void set_touch_wake_enabled (bool touch_wake_status) {
+	touch_wake_enabled = touch_wake_status;
+}
+EXPORT_SYMBOL(touch_wake_enabled);
+
+void set_s2w_enabled (bool s2w_status) {
+	s2w_enabled = s2w_status;
 }
 #endif
 

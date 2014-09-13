@@ -35,7 +35,7 @@
 #include <linux/touch_wake.h>
 #endif
 
-#ifdef CONFIG_S2W 
+#ifdef CONFIG_S2W
 #include <linux/i2c/mxt224_u1.h>
 #endif
 
