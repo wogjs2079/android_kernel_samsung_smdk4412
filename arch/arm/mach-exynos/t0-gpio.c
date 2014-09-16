@@ -523,7 +523,7 @@ static unsigned int t0_sleep_gpio_table[][3] = {
 	{EXYNOS4212_GPM2(0),  S3C_GPIO_SLP_INPUT, S3C_GPIO_PULL_NONE}, /* IF_PMIC_SDA_1.8V */
 	{EXYNOS4212_GPM2(1),  S3C_GPIO_SLP_INPUT, S3C_GPIO_PULL_NONE}, /* IF_PMIC_SCL_1.8V */
 	{EXYNOS4212_GPM2(2),  S3C_GPIO_SLP_INPUT, S3C_GPIO_PULL_DOWN}, /* VTCAM_MCLK */
-	{EXYNOS4212_GPM2(3),  S3C_GPIO_SFN(0xf), S3C_GPIO_PULL_DOWN}, /* TSP_nINT */
+	{EXYNOS4212_GPM2(3),  S3C_GPIO_SLP_INPUT, S3C_GPIO_PULL_DOWN}, /* TSP_nINT */
 #if defined(CONFIG_MACH_T0_EUR_OPEN)
 	{EXYNOS4212_GPM2(4),  S3C_GPIO_SLP_INPUT, S3C_GPIO_PULL_DOWN}, /* SUSPEND_REQUEST_HSIC */
 #else
@@ -994,7 +994,7 @@ static unsigned int t0_sleep_gpio_table[][3] = {
 	{EXYNOS4212_GPM2(0),  S3C_GPIO_SLP_INPUT, S3C_GPIO_PULL_NONE}, /* IF_PMIC_SDA_1.8V */
 	{EXYNOS4212_GPM2(1),  S3C_GPIO_SLP_INPUT, S3C_GPIO_PULL_NONE}, /* IF_PMIC_SCL_1.8V */
 	{EXYNOS4212_GPM2(2),  S3C_GPIO_SLP_INPUT, S3C_GPIO_PULL_DOWN}, /* VTCAM_MCLK */
-	{EXYNOS4212_GPM2(3),  S3C_GPIO_SFN(0xf), S3C_GPIO_PULL_DOWN}, /* TSP_nINT */
+	{EXYNOS4212_GPM2(3),  S3C_GPIO_SLP_INPUT, S3C_GPIO_PULL_DOWN}, /* TSP_nINT */
 #if defined(CONFIG_MACH_T0_EUR_OPEN) || defined(CONFIG_MACH_T0_CHN_CMCC) \
 	|| defined(CONFIG_MACH_T0_CHN_OPEN) || defined(CONFIG_MACH_T0_CHN_CU_DUOS) \
 	|| defined(CONFIG_MACH_T0_CHN_OPEN_DUOS)
@@ -1188,14 +1188,4 @@ void midas_config_gpio_table(void)
 			s5p_gpio_set_drvstr(gpio, t0_init_gpios[i].drv);
 		}
 	}
-}
-
-#ifdef CONFIG_TOUCH_WAKE
-void mms152_ts_gpio_sleep_mode(bool enable)
-{
-if (enable)
-s3c_gpio_slp_cfgpin(EXYNOS4212_GPM2(3), S3C_GPIO_SFN(0xf));
-else
-s3c_gpio_slp_cfgpin(EXYNOS4212_GPM2(3), S3C_GPIO_SLP_INPUT);
-#endif
 }

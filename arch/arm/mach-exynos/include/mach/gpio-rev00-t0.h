@@ -153,7 +153,7 @@ extern int s3c_gpio_slp_setpull_updown(unsigned int pin, unsigned int config);
 /* TSP */
 #define GPIO_TSP_SDA_18V	EXYNOS4_GPA1(2)
 #define GPIO_TSP_SCL_18V	EXYNOS4_GPA1(3)
-#define GPIO_TSP_INT		EXYNOS4212_GPM2(3) // touchpad
+#define GPIO_TSP_INT		EXYNOS4212_GPM2(3)
 #define GPIO_TSP_LDO_28V_EN		EXYNOS4212_GPM4(0)
 
 

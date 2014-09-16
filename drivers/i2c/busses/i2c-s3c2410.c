@@ -85,9 +85,9 @@ struct s3c24xx_i2c {
 #endif
 };
 
-#ifdef CONFIG_TOUCH_WAKE
+#ifdef CONFIG_S2W
 #ifdef CONFIG_PM
-extern bool touch_wake_enabled;
+extern bool s2w_enabled;
 #endif
 #endif
 
@@ -546,8 +546,8 @@ static int s3c24xx_i2c_doxfer(struct s3c24xx_i2c *i2c,
 	struct s3c2410_platform_i2c* pdata = i2c->dev->platform_data;
 #endif
 	if (i2c->suspended
-#ifdef CONFIG_TOUCH_WAKE
- 	&& !touch_wake_enabled
+#ifdef CONFIG_S2W
+ 	&& !s2w_enabled
 #endif
 	)
 		return -EIO;
@@ -686,8 +686,8 @@ static int s3c24xx_i2c_xfer(struct i2c_adapter *adap,
 	int ret;
 
 	if (i2c->suspended
-#ifdef CONFIG_TOUCH_WAKE
- 	&& !touch_wake_enabled
+#ifdef CONFIG_S2W
+ 	&& !s2w_enabled
 #endif
 	)
 

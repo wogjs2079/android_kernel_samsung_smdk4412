@@ -17,10 +17,6 @@
 
 #include "internals.h"
 
-#ifdef CONFIG_TOUCH_WAKE
-extern int touchwake_irq;
-#endif
-
 #ifdef CONFIG_IRQ_FORCED_THREADING
 __read_mostly bool force_irqthreads;
 
@@ -473,11 +469,6 @@ static int set_irq_wake_real(unsigned int irq, unsigned int on)
 
 	if (irq_desc_get_chip(desc)->flags &  IRQCHIP_SKIP_SET_WAKE)
 		return 0;
-
-#ifdef CONFIG_TOUCH_WAKE
-	if (irq == touchwake_irq)
-		return 0;
-#endif
 
 	if (desc->irq_data.chip->irq_set_wake)
 		ret = desc->irq_data.chip->irq_set_wake(&desc->irq_data, on);
