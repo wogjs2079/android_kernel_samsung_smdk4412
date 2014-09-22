@@ -205,7 +205,7 @@ static ssize_t touchwake_status_write(struct device * dev, struct device_attribu
 		#endif
 		}
 	set_touch_wake_enabled(touchwake_enabled);
-	mms152_ts_gpio_sleep_mode(touchwake_enabled);
+	//mms152_ts_gpio_sleep_mode(touchwake_enabled);
 	#ifdef DEBUG_PRINT
 	} else 	{
 		pr_info("[TOUCHWAKE] %s: invalid input\n", __FUNCTION__);

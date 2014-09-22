@@ -4440,6 +4440,7 @@ static int __devinit mms_ts_probe(struct i2c_client *client,
 	struct i2c_adapter *adapter = to_i2c_adapter(client->dev.parent);
 	struct mms_ts_info *info;
 	struct input_dev *input_dev;
+	unsigned long irqflags;
 	int ret = 0;
 #ifdef SEC_TSP_FACTORY_TEST
 	int i;
@@ -4584,9 +4585,13 @@ static int __devinit mms_ts_probe(struct i2c_client *client,
 #endif
 
 	info->enabled = true;
+	irqflags = IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING;
 
-	ret = request_threaded_irq(client->irq, NULL, mms_ts_interrupt,
+	/*ret = request_threaded_irq(client->irq, NULL, mms_ts_interrupt,
 				   IRQF_TRIGGER_LOW  | IRQF_ONESHOT,
+				   MELFAS_TS_NAME, info);*/
+	ret = request_threaded_irq(client->irq, NULL, mms_ts_interrupt,
+				   irqflags,
 				   MELFAS_TS_NAME, info);
 	if (ret < 0) {
 		dev_err(&client->dev, "Failed to register interrupt\n");

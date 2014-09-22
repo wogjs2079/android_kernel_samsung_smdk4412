@@ -19,6 +19,7 @@
 
 #ifdef CONFIG_TOUCH_WAKE
 extern int touchwake_irq;
+extern bool touch_wake_enabled;
 #endif
 
 #ifdef CONFIG_IRQ_FORCED_THREADING
@@ -475,8 +476,15 @@ static int set_irq_wake_real(unsigned int irq, unsigned int on)
 		return 0;
 
 #ifdef CONFIG_TOUCH_WAKE
-	if (irq == touchwake_irq)
+	if (irq == touchwake_irq) {
+		static int prevent_suspend;	
+		if (touch_wake_enabled && on && !prevent_suspend++)
+			desc->action->flags |= IRQF_NO_SUSPEND;
+		else if (prevent_suspend--)
+			desc->action->flags &= ~IRQF_NO_SUSPEND;
+
 		return 0;
+	}
 #endif
 
 	if (desc->irq_data.chip->irq_set_wake)
