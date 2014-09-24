@@ -320,7 +320,7 @@ int log_buf_copy(char *dest, int idx, int len)
 	bool took_lock = false;
 
 	if (!oops_in_progress) {
-		spin_lock_irq(&logbuf_lock);
+		raw_spin_lock_irq(&logbuf_lock);
 		took_lock = true;
 	}
 
@@ -337,7 +337,7 @@ int log_buf_copy(char *dest, int idx, int len)
 	}
 
 	if (took_lock)
-		spin_unlock_irq(&logbuf_lock);
+		raw_spin_unlock_irq(&logbuf_lock);
 
 	return ret;
 }
@@ -732,7 +732,7 @@ void register_log_char_hook(void (*f) (char c))
 	unsigned start;
 	unsigned long flags;
 
-	spin_lock_irqsave(&logbuf_lock, flags);
+	raw_spin_lock_irqsave(&logbuf_lock, flags);
 
 	start = min(con_start, log_start);
 	while (start != log_end)
@@ -740,7 +740,7 @@ void register_log_char_hook(void (*f) (char c))
 
 	log_char_hook = f;
 
-	spin_unlock_irqrestore(&logbuf_lock, flags);
+	raw_spin_unlock_irqrestore(&logbuf_lock, flags);
 }
 EXPORT_SYMBOL(register_log_char_hook);
 #endif
