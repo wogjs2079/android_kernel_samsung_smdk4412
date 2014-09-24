@@ -22,7 +22,7 @@ MODE=DUAL
 fi
 
 
-displayversion=Devil3.4_0.4.1
+displayversion=Devil3.4_0.4.3
 
 version=$displayversion-$TARGET-$MODE-$(date +%Y%m%d)
 
@@ -49,7 +49,7 @@ KERNEL_PATH=$PWD
 if [ "$(whoami)" == "dominik" ]; then
 	#TOOLCHAIN_PATH="/home/dominik/android/android_4.2/prebuilts/gcc/linux-x86/arm/arm-eabi-4.6/bin"
 	#TOOLCHAIN_PATH="/home/dominik/android/android_4.2/prebuilt/linux-x86/toolchain/android-toolchain-eabi-4.8-2013.07/bin"
-	TOOLCHAIN_PATH="/home/dominik/android/android_4.2/prebuilt/linux-x86/toolchain/android-toolchain-eabi-4.8-2013.12/bin"
+	TOOLCHAIN_PATH="toolchain/android-toolchain-eabi-4.8-2013.12/bin"
 	#TOOLCHAIN_PATH="/home/dominik/android/android_4.2/prebuilts/gcc/linux-x86/arm/arm-eabi-4.7.2/bin"
 elif [ "$(whoami)" == "rollus" ]; then
 	TOOLCHAIN_PATH="/home/rollus/android-toolchain-eabi/bin/"
