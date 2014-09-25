@@ -200,6 +200,8 @@ $BB echo "# usb connection workaround, needed because of broken default.prop exe
 $BB echo "/system/bin/setprop persist.sys.usb.config mtp,adb" >> /system/etc/init.d/15devil
 $BB chmod a+x /system/etc/init.d/15devil
 
+$BB sed -i s/ro.securestorage.support=true/ro.securestorage.support=false/g /system/build.prop
+
 setproperties
 
 echo $KV > /.secondrom/media/.devil
