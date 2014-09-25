@@ -130,16 +130,13 @@ copy_libs
 	fi
 	echo previous version: $INSTALLED_VER
 
-	if [ "$1" == "sammy43" ] ; then
-	    if $BB [ ! -f /.secondrom/.selinux_enable ] && $BB grep -q f2fs /proc/mounts ; then #selinux disabled by default
+	if [ "$1" == "sammy43" ] || [ "$1" == "sammy44" ] ; then
+	    #if $BB grep -q f2fs /proc/mounts ; then #selinux disabled by default
    	    	echo 2 > /proc/sys/kernel/rom_feature_set
 		echo "disabled selinux"
-	    else
-	    	if $BB grep -q f2fs /proc/mounts ; then
-		   $BB mv -f /f2fs_selinux/* /
-	    	fi
-   	    	echo 4 > /proc/sys/kernel/rom_feature_set
-	    fi
+	    #else
+   	    #	echo 4 > /proc/sys/kernel/rom_feature_set
+	    #fi
 	    $BB mv -f /misc/sbin2/* /sbin/
 	    $BB mv -f /misc/system/bin/* /system/bin/
 	    $BB chmod a+x /system/bin/sysinit
@@ -175,8 +172,9 @@ copy_libs
 }
 
 if $BB grep -q ro.build.version.release=4.4 /system/build.prop; then
-   if $BB grep -q cyanogenmod /system/build.prop ||
-      $BB grep -q ro.cm.version /system/build.prop; then
+    if $BB [ -f /system/framework/smartfaceservice.jar ]; then
+	rom sammy44
+    elif $BB grep -q cyanogenmod /system/build.prop || $BB grep -q ro.cm.version /system/build.prop; then
 	echo "rom seems to be cm based"
    	rom cm11
    else
@@ -242,6 +240,5 @@ fi
 $BB rm -rf /roms
 $BB rm -rf /lib/prop_modules
 $BB rm -rf /misc
-$BB rm -rf /f2fs_selinux
 #############################
 exec /sbin/init.2
