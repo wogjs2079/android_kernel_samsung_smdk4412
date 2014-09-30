@@ -340,13 +340,6 @@ static struct ctl_table kern_table[] = {
                 .mode           = 0644,
                 .proc_handler   = rom_feature_set_sysctl,
         },
-        {
-                .procname       = "rom_feature_set",
-                .data           = &rom_feature_set,
-                .maxlen         = sizeof(unsigned int),
-                .mode           = 0644,
-                .proc_handler   = rom_feature_set_sysctl,
-        },
 #ifdef CONFIG_SCHED_DEBUG
         {
                 .procname       = "sched_min_granularity_ns",
