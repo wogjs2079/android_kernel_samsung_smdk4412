@@ -22,7 +22,7 @@ MODE=DUAL
 fi
 
 
-displayversion=Devil3.4_0.4.3
+displayversion=Devil3.4_0.4.6c
 
 version=$displayversion-$TARGET-$MODE-$(date +%Y%m%d)
 
@@ -74,6 +74,7 @@ ls $ROOTFS_PATH/roms/ | while read ramdisk; do
 	cd $ROOTFS_PATH/roms/$ramdisk
 	echo fixing permisions on $(pwd)
 chmod 644 *.rc
+chmod 750 lpm.rc
 chmod 750 init*
 chmod 640 fstab*
 chmod 644 default.prop
