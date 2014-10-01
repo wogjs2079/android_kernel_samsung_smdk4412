@@ -52,6 +52,7 @@ service ueventd /sbin/ueventd
 service console /system/bin/sh
     console
 
+# jellybean lpm
 service playlpm /system/bin/playlpm
     user root
 
