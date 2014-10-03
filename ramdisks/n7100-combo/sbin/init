@@ -113,15 +113,19 @@ rom() {
 echo "using $1 initramfs"
 copy_libs
 
+	$BB mv -f /roms/$1/* /
    if $BB grep -q 1 /sys/class/power_supply/battery/batt_lp_charging ; then
   	# low power mode
-	$BB mv -f /roms/sammy43/* /
- 	echo 0 > /proc/sys/kernel/rom_feature_set
 	SECONDARYBOOT=0
+	#$BB mv -f /roms/omni/* /
+	$BB rm -f init.rc
  	$BB cp -f lpm.rc init.rc
   	$BB rm -f init.smdk4x12.rc
-   else
-	$BB mv -f /roms/$1/* /
+  	#$BB umount -f /.secondrom
+	#exec /sbin/init.2
+   #else
+	#$BB mv -f /roms/$1/* /
+   fi
 	INSTALLED_VER=nothing
 	KV=`$BB uname -r`
 	echo "kernelversion: $KV"
@@ -168,13 +172,21 @@ copy_libs
 	    $BB echo "/system/bin/sdcard /.secondrom/media /mnt/shell/emulated 1023 1023 &" >> /system/etc/init.d/10sd_mount
 	    $BB chmod a+x /system/etc/init.d/10sd_mount
 	fi
+
+   if $BB [ -f /.secondrom/media/0/.bootlogo_disable ] ; then
+        echo 1 > /proc/sys/kernel/bootlogo_disable
+	echo "disabled bootlogo"
+   else
+   	echo 0 > /proc/sys/kernel/bootlogo_disable
    fi
 }
 
 if $BB grep -q ro.build.version.release=4.4 /system/build.prop; then
-    if $BB [ -f /system/framework/smartfaceservice.jar ]; then
+   if $BB [ -f /system/framework/smartfaceservice.jar ]; then
 	rom sammy44
-    elif $BB grep -q cyanogenmod /system/build.prop || $BB grep -q ro.cm.version /system/build.prop; then
+
+   elif $BB grep -q cyanogenmod /system/build.prop ||
+      $BB grep -q ro.cm.version /system/build.prop; then
 	echo "rom seems to be cm based"
    	rom cm11
    else
@@ -197,6 +209,8 @@ $BB echo "#!/system/bin/sh" > /system/etc/init.d/15devil
 $BB echo "# usb connection workaround, needed because of broken default.prop execution" >> /system/etc/init.d/15devil
 $BB echo "/system/bin/setprop persist.sys.usb.config mtp,adb" >> /system/etc/init.d/15devil
 $BB chmod a+x /system/etc/init.d/15devil
+
+$BB sed -i s/ro.securestorage.support=true/ro.securestorage.support=false/g /system/build.prop
 
 setproperties
 
