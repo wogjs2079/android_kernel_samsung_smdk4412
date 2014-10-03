@@ -145,8 +145,8 @@ static irqreturn_t s3cfb_irq_frame(int irq, void *dev_id)
 	if (fbdev[0]->regs != 0)
 		s3cfb_clear_interrupt(fbdev[0]);
 
-#if defined(CONFIG_FB_S5P_VSYNC_THREAD)
 	fbdev[0]->vsync_info.timestamp = ktime_get();
+#if defined(CONFIG_FB_S5P_VSYNC_THREAD)
 	wake_up_interruptible_all(&fbdev[0]->vsync_info.wait);
 #endif
 
@@ -435,18 +435,6 @@ static int s3cfb_wait_for_vsync_thread(void *data)
 				fbdev->vsync_info.timestamp) &&
 				fbdev->vsync_info.active);
 
-OLDMALI {
-	SAMSUNGROM {
-                        char *envp[2];
-                        char buf[64];
-                        snprintf(buf, sizeof(buf), "VSYNC=%llu",
-                                        ktime_to_ns(fbdev->vsync_info.timestamp));
-                        envp[0] = buf;
-                        envp[1] = NULL;
-                        kobject_uevent_env(&fbdev->dev->kobj, KOBJ_CHANGE,
-                                                        envp);
-	}
-}
 		SAMSUNGROM {
 		sysfs_notify(&fbdev->fb[pdata->default_win]->dev->kobj,
 				NULL, "vsync_event");
