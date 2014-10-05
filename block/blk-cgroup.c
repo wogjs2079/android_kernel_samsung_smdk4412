@@ -1656,7 +1656,7 @@ static void blkiocg_attach(struct cgroup_subsys *ss, struct cgroup *cgrp,
 
 	cgroup_taskset_for_each(task, cgrp, tset) {
 		/* we don't lose anything even if ioc allocation fails */
-		ioc = get_task_io_context(tsk, GFP_ATOMIC, NUMA_NO_NODE);
+		ioc = get_task_io_context(task, GFP_ATOMIC, NUMA_NO_NODE);
 		if (ioc) {
 			ioc_cgroup_changed(ioc);
 			put_io_context(ioc);
