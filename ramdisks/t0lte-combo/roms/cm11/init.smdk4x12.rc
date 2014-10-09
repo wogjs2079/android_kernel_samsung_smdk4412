@@ -1,9 +1,12 @@
+﻿# Init for devices built on Samsung SMDK4412 platform
+
 import init.mount.rc
-import init.target.rc
-import init.smdk4x12.usb.rc
+import /init.target.rc
+import /init.smdk4x12.usb.rc
 
 on init
     chmod 0701 /mnt/media_rw
+    chown root root /mnt/media_rw
     mkdir /mnt/shell/emulated 0700 shell shell
     mkdir /storage 0550 system sdcard_r
     mkdir /storage/emulated 0555 root root
@@ -30,9 +33,6 @@ on init
     mkdir /efs 0771 radio system
     mkdir /tombstones
     symlink /efs /factory
-
-# ko files for FM Radio
-    insmod /system/lib/modules/Si4709_driver.ko
 
 on post-fs-data
      # we will remap this as /mnt/sdcard with the sdcard fuse tool
@@ -132,6 +132,8 @@ on post-fs-data
     chown system system /sys/class/sec/sec_touchkey/timeout
     chmod 0660 /sys/class/sec/sec_touchkey/force_disable
     chown system system /sys/class/sec/sec_touchkey/force_disable
+    chmod 0660 /sys/class/sec/sec_touchkey/keypad_enable
+    chown system system /sys/class/sec/sec_touchkey/keypad_enable
 
 # S-Pen
     chown system system /sys/class/sec/sec_epen/epen_saving_mode
@@ -434,9 +436,12 @@ service fuse_usbdisk0 /system/bin/sdcard -u 1023 -g 1023 /mnt/media_rw/usbdisk0 
     disabled
 
 service p2p_supplicant /system/bin/wpa_supplicant \
-    -iwlan0 -Dnl80211 -c/data/misc/wifi/wpa_supplicant.conf -N \
+    -iwlan0 -Dnl80211 -c/data/misc/wifi/wpa_supplicant.conf \
+    -I/system/etc/wifi/wpa_supplicant.conf \
+    -O/data/misc/wifi/sockets -N \
     -ip2p0 -Dnl80211 -c/data/misc/wifi/p2p_supplicant.conf -e/data/misc/wifi/entropy.bin \
-    -puse_p2p_group_interface=1 -O/data/misc/wifi/sockets -g@android:wpa_wlan0
+    -puse_p2p_group_interface=1 \
+    -g@android:wpa_wlan0
     #   we will start as root and wpa_supplicant will switch to user wifi
     #   after setting up the capabilities required for WEXT
     #   user wifi
@@ -448,7 +453,10 @@ service p2p_supplicant /system/bin/wpa_supplicant \
 
 service wpa_supplicant /system/bin/wpa_supplicant \
     -Dnl80211 -iwlan0 -e/data/misc/wifi/entropy.bin \
-    -c/data/misc/wifi/wpa_supplicant.conf -O/data/misc/wifi/sockets -g@android:wpa_wlan0
+    -c/data/misc/wifi/wpa_supplicant.conf \
+    -I/system/etc/wifi/wpa_supplicant.conf \
+    -O/data/misc/wifi/sockets \
+    -g@android:wpa_wlan0
     #   we will start as root and wpa_supplicant will switch to user wifi
     #   after setting up the capabilities required for WEXT
     #   user wifi
