@@ -22,7 +22,7 @@ MODE=DUAL
 fi
 
 
-displayversion=Devil3.4_0.4.6c
+displayversion=Devil3.4_0.5.3
 
 version=$displayversion-$TARGET-$MODE-$(date +%Y%m%d)
 
@@ -137,11 +137,11 @@ mkdir -p $KERNEL_PATH/release
 mv *.zip $KERNEL_PATH/release
 cd ..
 
-if [ "$TARGET" != "i9100" ] ; then
-cd tar
-tar cf $version.tar boot.img && ls -lh $version.tar
-mv *.tar $KERNEL_PATH/release
-fi
+#if [ "$TARGET" != "i9100" ] ; then
+#cd tar
+#tar cf $version.tar boot.img && ls -lh $version.tar
+#mv *.tar $KERNEL_PATH/release
+#fi
 
 # Cleanup
 cd $KERNEL_PATH
