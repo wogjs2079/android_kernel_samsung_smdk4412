@@ -35,6 +35,8 @@
 
 #ifdef CONFIG_TOUCH_WAKE
 #include <linux/touch_wake.h>
+
+static int old_state;
 #endif
 
 /* For debugging */
@@ -514,10 +516,13 @@ static ssize_t proximity_enable_store(struct device *dev,
 		input_sync(cm36651->proximity_input_dev);
 
 #ifdef CONFIG_TOUCH_WAKE
-    		if (!val) // 0 is close = proximity detected
-       		proximity_detected();
-		else
-	      	proximity_off();
+		if (old_state != val) {
+    		    if (!val) // 0 is close = proximity detected
+       			proximity_detected();
+		    else
+	      		proximity_off();
+		    old_state = val;
+		}
 #endif
 		enable_irq(cm36651->irq);
 		enable_irq_wake(cm36651->irq);
