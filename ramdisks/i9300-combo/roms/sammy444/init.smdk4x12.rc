@@ -1,3 +1,4 @@
+import init.mount.rc
 import init.smdk4x12.usb.rc
 import init.bt.rc
 import init.carrier.rc
@@ -38,6 +39,7 @@ on init
     mkdir /storage/extSdCard 0555 root root
 
     # map "real" external storages paths also in same way. backwards compatibility.
+    symlink /storage/extSdCard /extSdCard
     symlink /storage/extSdCard /mnt/extSdCard
     symlink /storage/UsbDriveA /mnt/UsbDriveA
     symlink /storage/UsbDriveB /mnt/UsbDriveB
@@ -165,6 +167,9 @@ on post-fs-data
 # Waketime fot fast dormancy
     chown system radio /sys/devices/platform/mdm_hsic_pm0/waketime
     chmod 0660 /sys/devices/platform/mdm_hsic_pm0/waketime
+
+# Run sysinit
+    start sysinit
 
 on boot
     mount debugfs /sys/kernel/debug /sys/kernel/debug
@@ -304,18 +309,6 @@ on boot
     chown system system /dev/tspdrv
 
 on fs
-    mount_all /fstab.smdk4x12
-    setprop ro.crypto.fuse_sdcard true
-
-# for LogMeIn
-    mount ext4 /dev/block/mmcblk0p9 /system rw wait noatime remount
-
-    chown graphics /system/bin/RescueStarter
-    chmod 0755 /system/bin/RescueStarter
-    chown graphics /system/bin/RescueServer
-    chmod 0755 /system/bin/RescueServer
-
-    mount ext4 /dev/block/mmcblk0p9 /system ro wait noatime remount
 
 # Permissions for DVFS
     chown radio system /sys/power/cpufreq_table
@@ -445,14 +438,6 @@ service setup_fs /system/bin/setup_fs \
     class core
     user root
     group root
-    oneshot
-
-# create virtual SD card at /mnt/sdcard, based on the /data/media directory
-# daemon will drop to user/group system/media_rw after initializing
-# underlying files in /data/media will be created with user and group media_rw (1023)
-# virtual sdcard daemon running as media_rw (1023)
-service sdcard /system/bin/sdcard -u 1023 -g 1023 -l -r /data/media /mnt/shell/emulated
-    class late_start
     oneshot
 
 service fuse_extSdCard /system/bin/sdcard -u 1023 -g 1023 -w 1023 -d -f /mnt/media_rw/extSdCard /storage/extSdCard
@@ -779,3 +764,9 @@ service swapon /sbin/sswap -s
     group root
     seclabel u:r:sswap:s0
     oneshot
+
+# sysinit (/system/etc/init.d)
+service sysinit /system/bin/sysinit
+  user root
+  oneshot
+  disabled
