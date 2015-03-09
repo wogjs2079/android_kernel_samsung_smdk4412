@@ -160,6 +160,8 @@ copy_libs
 	    fi
 
 	    if [ "$1" == "lollipop" ] ; then
+   	    	echo 5 > /proc/sys/kernel/rom_feature_set
+		echo "disabled selinux"
 		$BB mv -f /misc/lollipop/* /sbin/
 	    fi
 

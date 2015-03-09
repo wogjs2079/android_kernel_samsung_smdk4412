@@ -1548,6 +1548,7 @@ CONFIG_WLAN_REGION_CODE=100
 # CONFIG_IWM is not set
 # CONFIG_LIBERTAS is not set
 # CONFIG_MWIFIEX is not set
+# CONFIG_LGUIWLAN is not set
 
 #
 # Enable WiMAX (Networking options) to see the WiMAX drivers

@@ -86,8 +86,8 @@ int step2_up = 90;
 int step3_down = 85;
 int step4_clk = 533;
 int step4_vol = 1075000;
-int step3_up = 90;
-int step4_down = 85;
+int step3_up = 100;
+int step4_down = 95;
 
 int gpu_voltage_default[MALI_DVFS_STEPS] = {
 #if defined(CONFIG_CPU_EXYNOS4212) || defined(CONFIG_CPU_EXYNOS4412)
@@ -145,7 +145,7 @@ mali_dvfs_table mali_dvfs[MALI_DVFS_STEPS]={
 			/* step 1 */{266  ,1000000	,900000	   ,62   , 90},
 			/* step 2 */{350  ,1000000	,950000	   ,85   , 90},
 			/* step 3 */{440  ,1000000	,1025000   ,85   , 90},
-			/* step 4 */{533  ,1000000	,1075000   ,85   ,100} };
+			/* step 4 */{533  ,1000000	,1075000   ,95   ,100} };
 #else
 			/* step 0 */{134  ,1000000	,950000    ,0   , 70},
 			/* step 1 */{267  ,1000000	,1050000   ,65   ,90},

@@ -614,7 +614,7 @@ static long exfat_generic_ioctl(struct file *filp,
 	}
 }
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,1,0)
+#if 0//LINUX_VERSION_CODE >= KERNEL_VERSION(3,1,0)
 static int exfat_file_fsync(struct file *filp, loff_t start, loff_t end, int datasync)
 #else
 static int exfat_file_fsync(struct file *filp, int datasync)
@@ -624,7 +624,7 @@ static int exfat_file_fsync(struct file *filp, int datasync)
 	struct super_block *sb = inode->i_sb;
 	int res, err;
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,1,0)
+#if 0//LINUX_VERSION_CODE >= KERNEL_VERSION(3,1,0)
 	res = generic_file_fsync(filp, start, end, datasync);
 #else
 	res = generic_file_fsync(filp, datasync);
