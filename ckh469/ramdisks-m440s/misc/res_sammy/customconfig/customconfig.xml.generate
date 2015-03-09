@@ -1,0 +1,509 @@
+#!/sbin/busybox sh
+
+cat << ENDCONFIG
+<settingsRoot>
+  <settingsTab name="ADJUST">
+    <settingsPane description="Vibration intensity control" name="Vibration intensity">
+      <seekBar  description="This option does not work on Sammy Roms!" 
+                name="Vibration intensity" 
+                action="generic /sys/vibrator/pwm_val"
+                unit="" min="0" reversed="false" step="10" max="100"/>
+    </settingsPane>
+
+    <settingsPane description="" name="Notification LED Behavior control">
+      <spinner description="Notification LED Behavior" 
+		name="Notification LED Behavior" 
+		action="generic /sys/devices/virtual/sec/led/led_fade">
+             <spinnerItem name="ROM default" value="-1"/> 
+             <spinnerItem name="Blinking" value="0"/> 
+             <spinnerItem name="Fading" value="1"/> 
+      </spinner>
+
+      <seekBar description="0=CM, 40=Samsung, Max=255, Defalut=0" 
+		name="LED Brightness" 
+		action="generic /sys/devices/virtual/sec/led/led_intensity" 
+		unit=" " min="0" reversed="false" step="5" max="255"/>
+
+      <seekBar description="" 
+		name="Speed" 
+		action="generic /sys/devices/virtual/sec/led/led_speed" 
+		unit=" s" min="1" reversed="false" step="1" max="5"/>
+
+      <seekBar description="" 
+		name="Slope Up1" 
+		action="generic /sys/devices/virtual/sec/led/led_slope_up1" 
+		unit=" s" min="1" reversed="false" step="1" max="5"/>
+
+      <seekBar description="" 
+		name="Slope Up2" 
+		action="generic /sys/devices/virtual/sec/led/led_slope_up2" 
+		unit=" s" min="1" reversed="false" step="1" max="5"/>
+
+      <seekBar description="" 
+		name="Slope Down1" 
+		action="generic /sys/devices/virtual/sec/led/led_slope_down1" 
+		unit=" s" min="1" reversed="false" step="1" max="5"/>
+
+      <seekBar description="" 
+		name="Slope Down2" 
+		action="generic /sys/devices/virtual/sec/led/led_slope_down2" 
+		unit=" s" min="1" reversed="false" step="1" max="5"/>
+    </settingsPane>
+
+    <settingsPane description="" name="Touchkey Backlight Settings">
+      <checkbox description="" 
+		name="Completely disable backlight" 
+		action="generic01 /sys/devices/virtual/sec/sec_touchkey/force_disable" 
+		label="Completely disable backlight"/>
+
+      <checkbox description="" 
+		name="Kernel controls backlight" 
+		action="generic01 /sys/devices/virtual/sec/sec_touchkey/touch_led_handling" 
+		label="Kernel controls backlight"/>
+
+      <checkbox description="" 
+		name="Light up on screen touch" 
+		action="generic01 /sys/devices/virtual/sec/sec_touchkey/touch_led_on_screen_touch" 
+		label="Light up on screen touch"/>
+
+      <seekBar description="" 
+		name="Backlight timeout" 
+		action="generic /sys/devices/virtual/sec/sec_touchkey/timeout" 
+		unit=" s" min="1" reversed="false" step="1" max="5"/>
+    </settingsPane>
+  </settingsTab>
+
+  <settingsTab name="CPU">
+    <settingsPane description="" name="GENTLE_FAIR_SLEEPERS Setting">
+      <checkbox description="Disabling GENTLE_FAIR_SLEEPERS may give you better UI responsiveness." 
+		name="" 
+		action="schedfeat GENTLE_FAIR_SLEEPERS" 
+		label="GENTLE_FAIR_SLEEPERS"/>
+    </settingsPane>
+
+    <settingsPane description="" name="CPU Idle and Power Settings">
+      <spinner description="Sets the CPU Idle Mode. Idle+LPA is the default and recommended for S3." 
+		name="CPU Idle Mode" 
+		action="generic /sys/module/cpuidle_exynos4/parameters/enable_mask">
+             <spinnerItem name="Idle + LPA (default)" value="2"/> 
+             <spinnerItem name="AFTR + LPA" value="3"/> 
+             <spinnerItem name="AFTR only" value="1"/> 
+             <spinnerItem name="Idle only" value="0"/> 
+      </spinner>
+
+      <seekBar description="Sets the sched_mc value which changes the cpu scheduler behaviour for multi-cpu systems. 0 is kernel's default value which turns sched_mc off. Setting it to 1 means that the first core will be tried to be loaded more and setting it to 2 will bias task wake-ups to semi-idle cpu package for power savings. (default: 0)" 
+		name="sched_mc" 
+		action="generic /sys/devices/system/cpu/sched_mc_power_savings" 
+		unit="" min="0" reversed="false" step="1" max="2"/>
+    </settingsPane>
+
+    <settingsPane description="" name="CPU Undervolting">
+      <spinner description="Sets the CPU undervolting value which will be applied during boot time only. It will not have any effect until you restart your device. Remember: if you change this value and your device doesn't boot you will have to reset extweaks settings using CWM recovery. This value will be applied to all CPU steps before any script or app execution. If you use any script or voltage control app this setting may be overriden by those." 
+		name="CPU Undervolting" 
+		action="generic /tmp/cpu_undervolting">
+             <spinnerItem name="No Undervolting" value="0"/> 
+             <spinnerItem name=" -25 mV" value="-25"/> 
+             <spinnerItem name=" -50 mV" value="-50"/> 
+             <spinnerItem name=" -75 mV" value="-75"/> 
+             <spinnerItem name="-100 mV" value="-100"/> 
+      </spinner>
+    </settingsPane>
+
+    <settingsPane description="" name="CPU Scaling Settings">
+      <spinner description="Sets the minimum number of CPUs to be used in hotplugging. Only effective for pegasusq and lulzactiveq governors." 
+		name="Min CPU Lock" 
+		action="min-cpu-lock">
+             <spinnerItem name="Quad core mode (unlocked,default)" value="0"/> 
+             <spinnerItem name="Triple core mode" value="3"/> 
+             <spinnerItem name="Dual core mode" value="2"/> 
+             <spinnerItem name="Single core mode" value="1"/> 
+      </spinner>
+
+      <spinner description="Sets the maximum number of CPUs to be used in hotplugging. Only effective for pegasusq and lulzactiveq governors." 
+		name="Max CPU Lock" 
+		action="max-cpu-lock">
+             <spinnerItem name="Quad core mode (unlocked,default)" value="0"/> 
+             <spinnerItem name="Triple core mode" value="3"/> 
+             <spinnerItem name="Dual core mode" value="2"/> 
+             <spinnerItem name="Single core mode" value="1"/> 
+      </spinner>
+
+      <spinner description="This will set the default CPU governor. Default CPU governor will only be set during early stages of booting (before init.d execution) and can be overriden by later scripts or apps." 
+		name="Default CPU Governor" 
+		action="generic /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor">
+             <spinnerItem name="devilq" value="devilq"/> 
+             <spinnerItem name="zzmoove" value="zzmoove"/> 
+             <spinnerItem name="lulzactiveq" value="lulzactiveq"/> 
+             <spinnerItem name="hotplug" value="hotplug"/> 
+             <spinnerItem name="interactive" value="interactive"/> 
+             <spinnerItem name="pegasusq" value="pegasusq"/> 
+             <spinnerItem name="performance" value="performance"/> 
+      </spinner>
+
+      <spinner description="Set ZZMOOVE Profile. Default Profile is Yank Battery." 
+		name="ZZMOOVE Profile" 
+		action="generic /sys/devices/system/cpu/cpufreq/zzmoove/profile_number">
+             <spinnerItem name="default" value="1"/> 
+             <spinnerItem name="Yank Battery" value="2"/> 
+             <spinnerItem name="Yank Battery Extreme" value="3"/> 
+             <spinnerItem name="ZaneZam Battery" value="4"/> 
+             <spinnerItem name="ZaneZam Battery Plus" value="5"/> 
+             <spinnerItem name="ZaneZam Optimized" value="6"/> 
+             <spinnerItem name="ZaneZam Moderate" value="7"/> 
+             <spinnerItem name="ZaneZam Performance" value="8"/> 
+             <spinnerItem name="ZaneZam InZane" value="9"/> 
+             <spinnerItem name="ZaneZam Gaming" value="10"/> 
+      </spinner>
+
+      <spinner description="Set the maximum freqency the CPU scales up to. Default: `expr \`cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq\` / 1000` MHz." 
+               name="CPU max frequency" 
+               action="generic /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq">"
+`
+cat /sys/devices/system/cpu/cpu0/cpufreq/UV_uV_table | \
+sed -e 's/mhz//g;s/://g' | awk '{ print $1, $2 }' | \
+while read FREQ UVOLT; do
+  echo '         <spinnerItem name="'$FREQ' MHz" value="'${FREQ}000'"/>'
+done
+`
+      </spinner>
+
+      <spinner description="Set the minimum freqency the CPU scales down to. Default: `expr \`cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq\` / 1000` MHz." 
+               name="CPU min frequency" 
+               action="generic /sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq">"
+`
+cat /sys/devices/system/cpu/cpu0/cpufreq/UV_uV_table | \
+sed -e 's/mhz//g;s/://g' | awk '{ print $1, $2 }' | \
+while read FREQ UVOLT; do
+  echo '         <spinnerItem name="'$FREQ' MHz" value="'${FREQ}000'"/>'
+done
+`
+      </spinner>
+    </settingsPane>
+  </settingsTab>
+
+  <settingsTab name="CPU_UV">
+    <settingsPane description="Apply the settings on boot only if the desired settings prove to be stable, else the device ends up in a boot-loop. If turned off, the displayed values do not correspond the current live values but the saved profile values, some inconsistencies may occur on applying." 
+                  name="CPU control switch">
+      <checkbox description="If enabled, the below settings will be applied at boot." 
+                name="Set CPU settings on boot" 
+                action="controlswitch CPU"
+                label="Set on boot"/>
+    </settingsPane>
+
+    <settingsPane description="Decreasing voltage will lower power consumption of the CPU. Increasing it on overclocked frequencies improves stability. Too low voltage may cause instabilities and freezes." 
+                  name="CPU voltage control">
+
+`
+cat /sys/devices/system/cpu/cpu0/cpufreq/UV_uV_table | \
+sed -e 's/mhz//g;s/://g' | awk '{ print $1, $2 }' | \
+while read FREQ UVOLT; do
+  echo '      <seekBar  description="Default voltage: '$UVOLT'µV"
+	        name="'${FREQ}' MHz step" 
+                action="cpuvolt '${FREQ}'"
+                unit=" µV" min="800000" reversed="false" step="12500" max="1450000"/>"'
+  CPUFREQLIST="$CPUFREQLIST $FREQ"
+done
+`
+    </settingsPane>
+  </settingsTab>
+
+  <settingsTab name="GPU">
+    <settingsPane description="GPU Frequency Settings. Default frequencies are: 160, 266, 350, 440MHz and 533MHz. Warning: Changing GPU frequency or voltages may cause lockups or damage on your device." name="GPUFreq">
+      <spinner description="Changes the first (lowest) GPU frequency step" 
+		name="GPU Freq Step1" 
+		action="gpu-freq 1">
+             <spinnerItem name="266MHz" value="266"/> 
+             <spinnerItem name="200MHz" value="200"/> 
+             <spinnerItem name="160MHz" value="160"/> 
+             <spinnerItem name="108MHz" value="108"/> 
+             <spinnerItem name="54MHz" value="54"/> 
+      </spinner>
+
+      <spinner description="Changes the second GPU frequency step" 
+		name="GPU Freq Step2" 
+		action="gpu-freq 2">
+             <spinnerItem name="400MHz" value="400"/> 
+             <spinnerItem name="350MHz" value="350"/> 
+             <spinnerItem name="333MHz" value="333"/> 
+             <spinnerItem name="300MHz" value="300"/> 
+             <spinnerItem name="275MHz" value="275"/> 
+             <spinnerItem name="266MHz" value="266"/> 
+             <spinnerItem name="200MHz" value="200"/> 
+             <spinnerItem name="160MHz" value="160"/> 
+             <spinnerItem name="108MHz" value="108"/> 
+      </spinner>
+
+      <spinner description="Changes the third GPU frequency step" 
+		name="GPU Freq Step3" 
+		action="gpu-freq 3">
+             <spinnerItem name="640MHz" value="640"/> 
+             <spinnerItem name="600MHz" value="600"/> 
+             <spinnerItem name="533MHz" value="533"/> 
+             <spinnerItem name="440MHz" value="440"/> 
+             <spinnerItem name="400MHz" value="400"/> 
+             <spinnerItem name="350MHz" value="350"/> 
+             <spinnerItem name="333MHz" value="333"/> 
+             <spinnerItem name="300MHz" value="300"/> 
+             <spinnerItem name="275MHz" value="275"/> 
+             <spinnerItem name="266MHz" value="266"/> 
+             <spinnerItem name="200MHz" value="200"/> 
+             <spinnerItem name="160MHz" value="160"/> 
+      </spinner>
+
+      <spinner description="Changes the fourth GPU frequency step" 
+		name="GPU Freq Step4" 
+		action="gpu-freq 4">
+             <spinnerItem name="700MHz" value="700"/> 
+             <spinnerItem name="666MHz" value="666"/> 
+             <spinnerItem name="640MHz" value="640"/> 
+             <spinnerItem name="600MHz" value="600"/> 
+             <spinnerItem name="533MHz" value="533"/> 
+             <spinnerItem name="440MHz" value="440"/> 
+             <spinnerItem name="400MHz" value="400"/> 
+             <spinnerItem name="350MHz" value="350"/> 
+             <spinnerItem name="333MHz" value="333"/> 
+             <spinnerItem name="300MHz" value="300"/> 
+             <spinnerItem name="275MHz" value="275"/> 
+             <spinnerItem name="266MHz" value="266"/> 
+             <spinnerItem name="200MHz" value="200"/> 
+      </spinner>
+
+      <spinner description="Changes the fifth GPU frequency step" 
+		name="GPU Freq Step5" 
+		action="gpu-freq 5">
+             <spinnerItem name="700MHz" value="700"/> 
+             <spinnerItem name="666MHz" value="666"/> 
+             <spinnerItem name="640MHz" value="640"/> 
+             <spinnerItem name="600MHz" value="600"/> 
+             <spinnerItem name="533MHz" value="533"/> 
+             <spinnerItem name="440MHz" value="440"/> 
+             <spinnerItem name="400MHz" value="400"/> 
+             <spinnerItem name="350MHz" value="350"/> 
+             <spinnerItem name="333MHz" value="333"/> 
+             <spinnerItem name="300MHz" value="300"/> 
+             <spinnerItem name="275MHz" value="275"/> 
+             <spinnerItem name="266MHz" value="266"/> 
+             <spinnerItem name="200MHz" value="200"/> 
+             <spinnerItem name="160MHz" value="160"/> 
+             <spinnerItem name="108MHz" value="108"/> 
+             <spinnerItem name="54MHz" value="54"/> 
+      </spinner>
+    </settingsPane>
+
+    <settingsPane description="GPU load thresholds to change between frequency steps." 
+		name="GPU Thresholds">
+      <seekBar description="GPU threshold to jump up from first to second step" 
+		name="GPU Threshold 1-UP" 
+		action="gpu-thresh 1UP" 
+		unit="%" min="0" reversed="false" step="5" max="100"/>
+
+      <seekBar description="GPU threshold to jump down from second to first step" 
+		name="GPU Threshold 2-DOWN" 
+		action="gpu-thresh 2DOWN" 
+		unit="%" min="0" reversed="false" step="5" max="100"/>
+
+      <seekBar description="GPU threshold to jump up from second to third step" 
+		name="GPU Threshold 2-UP" 
+		action="gpu-thresh 2UP" 
+		unit="%" min="0" reversed="false" step="5" max="100"/>
+
+      <seekBar description="GPU threshold to jump down from third to second step" 
+		name="GPU Threshold 3-DOWN" 
+		action="gpu-thresh 3DOWN" 
+		unit="%" min="0" reversed="false" step="5" max="100"/>
+
+      <seekBar description="GPU threshold to jump up from third to fourth step" 
+		name="GPU Threshold 3-UP" 
+		action="gpu-thresh 3UP" 
+		unit="%" min="0" reversed="false" step="5" max="100"/>
+
+      <seekBar description="GPU threshold to jump down from fourth to third step" 
+		name="GPU Threshold 4-DOWN" 
+		action="gpu-thresh 4DOWN" 
+		unit="%" min="0" reversed="false" step="5" max="100"/>
+
+      <seekBar description="GPU threshold to jump up from fourth to fifth step" 
+		name="GPU Threshold 4-UP" 
+		action="gpu-thresh 4UP" 
+		unit="%" min="0" reversed="false" step="5" max="100"/>
+
+      <seekBar description="GPU threshold to jump down from fifth to fourth step" 
+		name="GPU Threshold 5-DOWN" 
+		action="gpu-thresh 5DOWN" 
+		unit="%" min="0" reversed="false" step="5" max="100"/>
+    </settingsPane>
+  </settingsTab>
+
+  <settingsTab name="Screen">
+    <settingsPane description="Screen related settings" name="Screen Settings">
+      <checkbox description="mDNIe sharpness tweaks from hardcore. Requires reboot to be effective." 
+		name="mDNIe Sharpness Tweaks" 
+		action="generic /tmp/mdniemod" 
+		label="mDNIe Sharpness Tweaks"/>
+
+      <checkbox description="Enable or Disable Touch Boost." 
+                name="Touch Boost" 
+                action="generic01 /sys/class/misc/touchboost/input_boost_enabled"
+                label="Touch Boost"/>
+
+      <spinner description="Set CPU freq boost frequency when you touch the screen. Lower frequencys will help with the battery with the cost of UI lags" 
+		name="Touch Boost Frequency" 
+		action="generic /sys/class/misc/touchboost/input_boost_freq">
+             <spinnerItem name="1000MHz" value="1000000"/> 
+             <spinnerItem name="900MHz" value="900000"/> 
+             <spinnerItem name="800MHz" value="800000"/> 
+             <spinnerItem name="700MHz (default)" value="700000"/> 
+             <spinnerItem name="600MHz" value="600000"/> 
+             <spinnerItem name="500MHz" value="500000"/> 
+             <spinnerItem name="400MHz" value="400000"/> 
+      </spinner>
+
+      <checkbox description="Enable or Disable Touch Wake" 
+                name="Touch Wake" 
+                action="generic01 /sys/class/misc/touchwake/wake_enabled"
+                label="Touch Wake"/>
+
+      <seekBar description="Touch Wake Delay in ms (Default is 5000ms)." 
+		name="Touch Wake Delay" 
+		action="generic /sys/class/misc/touchwake/delay" 
+		unit=" ms" min="0" reversed="false" step="5000" max="90000"/>
+
+      <seekBar description="FB earlysuspend delay to run CRT animation when you turn the screen off." 
+		name="FB Earlysuspend Delay" 
+		action="generickmem fbearlysuspend_delay 0 int" 
+		unit=" ms" min="0" reversed="false" step="100" max="500"/>
+    </settingsPane>
+  </settingsTab>
+
+  <settingsTab name="Misc">
+    <settingsPane description="Misc Settings" name="Misc Settings">
+      <checkbox description="Enable or Disable Android Logger (needs reboot)" 
+		name="Android Logger" 
+		action="generic /tmp/logger" 
+		label="Android Logger"/>
+
+      <checkbox description="Dynamic Fsync switch" 
+		name="Dynamic Fsync" 
+		action="generic01 /sys/kernel/dyn_fsync/Dyn_fsync_active" 
+		label="Dynamic Fsync"/>      
+
+      <spinner description="This will set the default I/O scheduler for Internal Storage" 
+		name="Default I/O Scheduler for Internal Storage" 
+		action="iosched_int /tmp/int_scheduler">
+             <spinnerItem name="bfq" value="bfq"/>
+             <spinnerItem name="cfq" value="cfq"/>
+             <spinnerItem name="deadline" value="deadline"/> 
+             <spinnerItem name="fiops" value="fiops"/> 
+             <spinnerItem name="noop" value="noop"/> 
+             <spinnerItem name="row" value="row"/>
+             <spinnerItem name="sio" value="sio"/> 
+             <spinnerItem name="zen" value="zen"/> 
+      </spinner>
+
+      <seekBar  description="The read-ahead value for the internal storage." 
+                name="Internal storage read-ahead" 
+                action="readahead_int /tmp/int_read_ahead_kb"
+                unit="kB" min="128" reversed="false" step="128" max="2048"/>
+
+      <spinner description="This will set the default I/O scheduler for the external Storage (SD-Card)" 
+		name="Default I/O Scheduler for SD-Card Storage" 
+		action="iosched_ext /tmp/ext_scheduler">
+             <spinnerItem name="bfq" value="bfq"/>
+             <spinnerItem name="cfq" value="cfq"/>
+             <spinnerItem name="deadline" value="deadline"/> 
+             <spinnerItem name="fiops" value="fiops"/> 
+             <spinnerItem name="noop" value="noop"/> 
+             <spinnerItem name="row" value="row"/>
+             <spinnerItem name="sio" value="sio"/> 
+             <spinnerItem name="zen" value="zen"/> 
+      </spinner>
+
+      <seekBar  description="The read-ahead value for the external storage (SD-Card)." 
+                name="SD card read-ahead" 
+                action="readahead_ext /tmp/ext_read_ahead_kb"
+                unit="kB" min="128" reversed="false" step="128" max="2048"/>
+                
+      <button description="Apply IO-Scheduler settings." 
+		name="Set IO-Schedulers" 
+		action="ioschedapply" 
+		label="Set IO-Schedulers"/>
+    
+      <seekBar description="AC,CDP,Dock charge currents (default 1000)" 
+		name="AC Charge" action="chargecurrent_ac" 
+		unit="mA" min="800" reversed="false" step="100" max="1200"/>
+
+      <seekBar description="USB charge current (default 475)" 
+		name="USB Charge" action="chargecurrent_usb" 
+		unit="mA" min="450" reversed="false" step="25" max="900"/>
+
+      <checkbox description="If checked, BetterBatteryStatus will report discrete (non-overlapping) wakelock statistics." 
+		name="Discrete Wakelock Stats" 
+		action="generic01 /sys/module/wakelock/parameters/default_stats" 
+		label="Discrete Wakelock Stats"/>
+    </settingsPane>
+  </settingsTab>
+
+  <settingsTab name="Zswap">
+    <settingsPane description="Memory management" name="Zswap Settings">
+      <seekBar description="How of Total availabale Ram are going to be used for Zswap." 
+		name="Change Zswap Settings" 
+		action="generic /sys/module/zswap/parameters/max_pool_percent" 
+		unit=" %" min="0" reversed="false" step="5" max="50"/>
+
+      <seekBar description="Swappiness should be set to 0, if zram/swap aren't used. A low value means the kernel will try to avoid swapping as much as possible where a higher value instead will make the kernel aggressively try to use swap space. Default=60%" 
+		name="Swappiness" 
+		action="generic /proc/sys/vm/swappiness" 
+		unit=" %" min="0" reversed="false" step="5" max="100"/>
+    </settingsPane>
+  </settingsTab>
+
+  <settingsTab name="CHARGING">
+    <settingsPane description="" name="Charging Control">
+      <seekBar description="" 
+		name="DCP AC Input Current" 
+		action="generic /sys/class/power_supply/battery/device/dcp_ac_input_curr" 
+		unit=" mA" min="300" reversed="false" step="25" max="1500"/>
+
+      <seekBar description="" 
+		name="DCP AC Charge Current" 
+		action="generic /sys/class/power_supply/battery/device/dcp_ac_chrg_curr" 
+		unit=" mA" min="300" reversed="false" step="25" max="1500"/>
+
+      <seekBar description="" 
+		name="SDP Input Current" 
+		action="generic /sys/class/power_supply/battery/device/sdp_input_curr" 
+		unit=" mA" min="300" reversed="false" step="25" max="1500"/>
+
+      <seekBar description="" 
+		name="SDP Charge Current" 
+		action="generic /sys/class/power_supply/battery/device/sdp_chrg_curr" 
+		unit=" mA" min="300" reversed="false" step="25" max="1500"/>
+
+      <seekBar description="" 
+		name="CDP Input Current" 
+		action="generic /sys/class/power_supply/battery/device/cdp_input_curr" 
+		unit=" mA" min="300" reversed="false" step="25" max="1500"/>
+
+      <seekBar description="" 
+		name="CDP Charge Current" 
+		action="generic /sys/class/power_supply/battery/device/cdp_chrg_curr" 
+		unit=" mA" min="300" reversed="false" step="25" max="1500"/>
+
+      <seekBar description="" 
+		name="Charge Soft voltage" 
+		action="generic /sys/class/power_supply/battery/device/batt_chrg_soft_volt" 
+		unit=" mA" min="3600000" reversed="false" step="25000" max="4500000"/>
+
+      <checkbox description="" 
+		name="Ignore 100mA safety margin" 
+		action="generic01 /sys/class/power_supply/battery/device/ignore_stable_margin" 
+		label="Ignore 100mA safety margin"/>
+
+      <checkbox description="" 
+		name="Ignore unstable power detection" 
+		action="generic01 /sys/class/power_supply/battery/device/ignore_unstable_power" 
+		label="Ignore unstable power detection"/>
+    </settingsPane>
+  </settingsTab>
+</settingsRoot>
+ENDCONFIG

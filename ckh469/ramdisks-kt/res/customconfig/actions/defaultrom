@@ -1,0 +1,12 @@
+#!/sbin/busybox sh
+
+if [ "a$2" != "a" ];then
+  echo $2 > /data/.secondaryboot
+  echo $2 > /.secondrom/.secondaryboot
+fi
+
+if [ -f /data/.secondaryboot ];then
+  cat /data/.secondaryboot
+else
+  echo 0
+fi

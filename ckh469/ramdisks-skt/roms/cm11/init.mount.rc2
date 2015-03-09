@@ -1,0 +1,18 @@
+on fs
+    mkdir /preload
+    exec /sbin/mount_secondary.sh
+    mount_all /fstab.SHV-E210S
+    exec /sbin/modules.sh
+
+    setprop ro.crypto.fuse_sdcard true
+
+    chown radio system /efs
+    chmod 0771 /efs
+
+service fuse_sdcard1 /system/bin/sdcard -u 1023 -g 1023 /mnt/media_rw/sdcard1 /storage/sdcard1
+    class late_start
+    disabled
+
+service fuse_usbdisk0 /system/bin/sdcard -u 1023 -g 1023 /mnt/media_rw/usbdisk0 /storage/usbdisk0
+    class late_start
+    disabled
