@@ -541,7 +541,7 @@ static int __init exynos4_pm_hotplug_init(void)
 	}
 */
 	/*get max frequency*/
-#ifdef CONFIG_MACH_M0
+#if defined(CONFIG_MACH_M0) || defined(CONFIG_MACH_C1)
 	max_performance = 1400000 * NUM_CPUS;
 #else
 	max_performance = 1600000 * NUM_CPUS;

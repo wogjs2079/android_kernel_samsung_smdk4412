@@ -418,5 +418,6 @@ struct page *swapin_readahead(swp_entry_t entry, gfp_t gfp_mask,
 	blk_finish_plug(&plug);
 
 	lru_add_drain();	/* Push any new pages onto the LRU now */
+#endif
 	return read_swap_cache_async(entry, gfp_mask, vma, addr);
 }

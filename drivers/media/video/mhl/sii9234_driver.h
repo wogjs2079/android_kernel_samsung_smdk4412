@@ -50,6 +50,22 @@
 #define ADC_SMARTDOCK   0x10 /* 40.2K ohm */
 #endif
 
+// [START] HELIXTECH: KT_SPIDER_FEATURE ====================================
+#ifdef CONFIG_SPIDER_MHL
+#include <linux/sched.h>
+#include <linux/wait.h>
+#include <linux/miscdevice.h>
+#include <linux/fs.h>
+#include <linux/poll.h>
+#include <linux/spidermhl.h>
+
+#define SPIDERMHL_VERSION	"0.2"
+
+/* Keyboard performance test 12-05-07 pianist */
+#define KEYBD_PERF	1
+#endif	/* CONFIG_SPIDER_MHL */
+// [END] HELIXTECH: KT_SPIDER_FEATURE ======================================
+
 #define T_WAIT_TIMEOUT_RGND_INT		2000
 #define T_WAIT_TIMEOUT_DISC_INT		1000
 #define T_WAIT_TIMEOUT_RSEN_INT		200
@@ -247,6 +263,13 @@
 #define CBUS_MHL_STATUS_REG_1           0xB1
 #define CBUS_MHL_STATUS_REG_2           0xB2
 #define CBUS_MHL_STATUS_REG_3           0xB3
+
+// [START] HELIXTECH: KT_SPIDER_FEATURE ====================================
+#ifdef CONFIG_SPIDER_MHL
+/* MHL Scratchpad Registers */
+#define MHL_SCRATCHPAD_REG_0		0xC0
+#endif	/* CONFIG_SPIDER_MHL */
+// [END] HELIXTECH: KT_SPIDER_FEATURE ======================================
 
 /* MHL TX DISC6 0x95 Register Bits */
 #define USB_D_OVR                       (1<<7)
@@ -562,6 +585,26 @@ struct sii9234_data {
 	struct work_struct mhl_400ms_rsen_work;
 	struct workqueue_struct *mhl_400ms_rsen_wq;
 
+// [START] HELIXTECH: KT_SPIDER_FEATURE ====================================
+#ifdef CONFIG_SPIDER_MHL
+	struct spider_event		*eventq;
+	struct fasync_struct		*spider_fa;
+	struct mutex			spider_lock;
+	wait_queue_head_t		spider_wq;
+
+	unsigned int			qhead;
+	unsigned int			qtail;
+
+	bool				isopened;
+	bool				sm_connected;
+	bool				sm_discovery;
+	bool				sm_issued;
+#if KEYBD_PERF
+	unsigned int			keycnt;
+#endif
+#endif	/* CONFIG_SPIDER_MHL */
+// [END] HELIXTECH: KT_SPIDER_FEATURE ======================================
+
 #ifdef CONFIG_EXTCON
 	/* Extcon */
 	struct extcon_specific_cable_nb extcon_dev;
@@ -582,6 +625,52 @@ struct sii9234_data {
 	struct hrtimer			pulse_timer;
 	struct switch_dev		mhl_event_switch;
 };
+
+// [START] HELIXTECH: KT_SPIDER_FEATURE ====================================
+#ifdef CONFIG_SPIDER_MHL
+#define MODULE_NAME	"spider-mhl"
+#define MAX_EVENT_QUEUE	200
+
+/* internal states */
+#define SPIDER_CONNECTED		1
+#define SPIDER_DISCONNECTED		2
+#define SPIDER_MSC_MSG			3
+#define SPIDER_WRITE_BURST_MSG		4
+
+static struct sii9234_data *g_sii9234;
+static struct spider_event events[MAX_EVENT_QUEUE];
+
+/* forward declarations */
+static struct spider_event *spider_get_queue(struct sii9234_data *sii9234);
+static void spider_put_queue(struct sii9234_data *sii9234,
+					struct spider_event *event);
+static void spider_issue_event(struct sii9234_data *sii9234,
+					struct spider_event *event);
+static void spider_mouse_event(struct sii9234_data *sii9234,
+						struct spider_event *event);
+static void spider_handle_new_event(struct sii9234_data *sii9234,
+						struct spider_event *event);
+static void spider_handle_new_state(struct sii9234_data *sii9234,
+						struct spider_event *event);
+static void spider_handle_msg(struct sii9234_data *sii9234, void *data,
+								int state);
+static void cbus_handle_msg(struct sii9234_data *sii9234, int state);
+static struct sii9234_data *spider_get_sii9234_data(void);
+static int spider_init(struct sii9234_data *sii9234);
+static void spider_exit(void);
+static int spider_open(struct inode *inode, struct file *filp);
+static int spider_release(struct inode *inode, struct file *filp);
+static ssize_t spider_read(struct file *filp, char *buf, size_t count,
+							loff_t *ppos);
+static ssize_t spider_write(struct file *filp, const char *buf,
+					size_t count, loff_t *ppos);
+static unsigned int spider_poll(struct file *filp,
+					struct poll_table_struct *wait);
+static long spider_ioctl(struct file *filp, unsigned int cmd,
+							unsigned long arg);
+static int spider_fasync(int fd, struct file *filp, int on);
+#endif	/* CONFIG_SPIDER_MHL */
+// [END] HELIXTECH: KT_SPIDER_FEATURE ======================================
 
 #ifdef __MHL_NEW_CBUS_MSC_CMD__
 struct msc_packet {

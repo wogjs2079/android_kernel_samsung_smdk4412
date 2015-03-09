@@ -172,6 +172,12 @@ struct s3cfb_extdsp_lcd {
 
 extern int s6c1372_panel_gpio_init(void);
 
+#ifdef CONFIG_TARGET_LOCALE_KOR
+#ifdef CONFIG_30PIN_CONN
+extern void set_cp_usb_state(bool connected);
+#endif
+#endif
+
 /* cable state */
 bool is_cable_attached;
 bool is_usb_lpm_enter;
@@ -1072,19 +1078,18 @@ static void irda_vdd_onoff(bool onoff)
 {
 	static struct regulator *vled_ic;
 
-	if (onoff) {
-		vled_ic = regulator_get(NULL, "vled_ic_1.9v");
-		if (IS_ERR(vled_ic)) {
-			pr_err("could not get regulator vled_ic_1.9v\n");
-			return;
-		}
-		regulator_enable(vled_ic);
-		vled_ic_onoff = 1;
-	} else if (vled_ic_onoff == 1) {
-		regulator_force_disable(vled_ic);
-		regulator_put(vled_ic);
-		vled_ic_onoff = 0;
+	vled_ic = regulator_get(NULL, "vled_ic_1.9v");
+	if (IS_ERR(vled_ic)) {
+		pr_err("could not get regulator vled_ic_1.9v\n");
+		return;
 	}
+	if (onoff) {
+		regulator_enable(vled_ic);
+	} else{
+		regulator_force_disable(vled_ic);
+	}
+	regulator_put(vled_ic);
+
 }
 
 static struct i2c_gpio_platform_data gpio_i2c_data22 = {
@@ -1329,6 +1334,15 @@ static void  sec_charger_cb(int set_cable_type, int cable_sub_type)
 		else
 			usb_gadget_vbus_disconnect(gadget);
 	}
+
+#ifdef CONFIG_TARGET_LOCALE_KOR
+#ifdef CONFIG_30PIN_CONN
+	if ((usb_path == USB_PATH_CP) && (set_cable_type == CHARGER_USB))
+		set_cp_usb_state(true);
+	else
+		set_cp_usb_state(false);
+#endif
+#endif
 
 	pr_info("%s\n", __func__);
 }
@@ -1607,11 +1621,6 @@ static void check_uart_path(bool en)
 	printk(KERN_DEBUG "[Keyboard] uart_sel : %d\n",
 		gpio_get_value(gpio_uart_sel));
 #endif /* (CONFIG_SAMSUNG_ANALOG_UART_SWITCH == 2) */
-}
-
-static void sec_30pin_register_cb(struct sec_30pin_callbacks *cb)
-{
-	s30pin_callbacks = cb;
 }
 
 static void sec_30pin_register_cb(struct sec_30pin_callbacks *cb)

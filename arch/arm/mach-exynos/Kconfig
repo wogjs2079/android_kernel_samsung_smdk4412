@@ -1287,9 +1287,6 @@ config IRON_BD
 config GRANDE_BD
 	bool "Grande common Board"
 
-source "arch/arm/mach-exynos/Kconfig.slp"
-
-
 config HD_00_BD
 	bool "HD revision 00 Board"
 	default n
@@ -1830,6 +1827,10 @@ endif
 
 if SEC_MODEM
 comment "Samsung Modem Feature"
+
+config LTE_VIA_SWITCH
+	bool
+	default n
 
 choice
 	prompt "SVNET2 version"

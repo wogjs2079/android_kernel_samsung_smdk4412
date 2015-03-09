@@ -691,6 +691,7 @@ source "drivers/misc/carma/Kconfig"
 source "drivers/misc/c2c/Kconfig"
 
 source "drivers/misc/modem_if/Kconfig"
+source "drivers/misc/modem_if_c1/Kconfig"
 source "drivers/misc/modem_if_na/Kconfig"
 if MACH_U1
 source "drivers/misc/modem_if_u1/Kconfig"

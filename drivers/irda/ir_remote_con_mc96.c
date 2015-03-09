@@ -33,11 +33,7 @@
 #include <linux/ir_remote_con_mc96.h>
 #include <linux/earlysuspend.h>
 #include "irda_fw.h"
-<<<<<<< HEAD
-#include <mach/gpio-rev00-p4notepq.h>
-=======
 #include <mach/gpio.h>
->>>>>>> a5ddfda... drivers, without drivers/media + video + samsung
 
 #define MAX_SIZE 2048
 #define MC96_READ_LENGTH	8
@@ -66,11 +62,8 @@ static void ir_remocon_late_resume(struct early_suspend *h);
 
 static int count_number;
 static int ack_number;
-<<<<<<< HEAD
-=======
 static int retry_count;
 static int download_pass;
->>>>>>> a5ddfda... drivers, without drivers/media + video + samsung
 
 static int irda_fw_update(struct ir_remocon_data *ir_data)
 {
@@ -81,12 +74,7 @@ static int irda_fw_update(struct ir_remocon_data *ir_data)
 
 	msleep(20);
 	data->pdata->ir_vdd_onoff(0);
-<<<<<<< HEAD
-	data->pdata->ir_wake_en(0);
-	data->pdata->ir_wake_en(1);
-=======
 	msleep(20);
->>>>>>> a5ddfda... drivers, without drivers/media + video + samsung
 	data->pdata->ir_vdd_onoff(1);
 	data->pdata->ir_wake_en(1);
 	msleep(100);
@@ -157,10 +145,6 @@ static int irda_fw_update(struct ir_remocon_data *ir_data)
 
 		msleep(20);
 
-<<<<<<< HEAD
-		if (ret == 0x01ba)
-			printk(KERN_INFO "6. %s: boot down complete\n",
-=======
 		ret2 = i2c_master_recv(client, buf_ir_test, MC96_READ_LENGTH);
 		if (ret2 < 0)
 			printk(KERN_ERR "6. %s: err %d\n", __func__, ret2);
@@ -171,7 +155,6 @@ static int irda_fw_update(struct ir_remocon_data *ir_data)
 
 		if (ret == checksum) {
 			printk(KERN_INFO "1. %s: boot down complete\n",
->>>>>>> a5ddfda... drivers, without drivers/media + video + samsung
 				__func__);
 			download_pass = 1;
 		} else if (ret2 == checksum2) {
@@ -195,10 +178,7 @@ static int irda_fw_update(struct ir_remocon_data *ir_data)
 		ret = buf_ir_test[2] << 8 | buf_ir_test[3];
 		printk(KERN_INFO "7. %s: user mode : Upgrade FW_version : %04x\n",
 						__func__, ret);
-<<<<<<< HEAD
-=======
 		data->pdata->ir_wake_en(0);
->>>>>>> a5ddfda... drivers, without drivers/media + video + samsung
 		data->pdata->ir_vdd_onoff(0);
 		data->on_off = 0;
 		msleep(100);
@@ -217,13 +197,6 @@ static int irda_fw_update(struct ir_remocon_data *ir_data)
 	}
 
 	return 0;
-<<<<<<< HEAD
-err_i2c_fail:
-	printk(KERN_ERR "%s: update fail! i2c ret : %x\n",
-							__func__, ret);
-	return ret;
-=======
->>>>>>> a5ddfda... drivers, without drivers/media + video + samsung
 err_update:
 	printk(KERN_ERR "%s: update fail! count : %x, ret = %x\n",
 							__func__, i, ret);
@@ -384,6 +357,10 @@ static ssize_t remocon_store(struct device *dev, struct device_attribute *attr,
 	unsigned int _data;
 	int count, i;
 
+#if defined(CONFIG_TARGET_TAB3_WIFI7) || defined(CONFIG_TARGET_TAB3_LTE7)
+	data->pdata->irled_ldo_onoff(1);
+#endif
+
 	for (i = 0; i < MAX_SIZE; i++) {
 		if (sscanf(buf++, "%u", &_data) == 1) {
 			if (_data == 0 || buf == '\0')
@@ -424,6 +401,11 @@ static ssize_t remocon_store(struct device *dev, struct device_attribute *attr,
 	}
 
 	ir_remocon_work(data, data->count);
+
+#if defined(CONFIG_TARGET_TAB3_WIFI7) || defined(CONFIG_TARGET_TAB3_LTE7)
+	data->pdata->irled_ldo_onoff(0);
+#endif
+
 	return size;
 }
 
@@ -451,15 +433,9 @@ static ssize_t remocon_ack(struct device *dev, struct device_attribute *attr,
 	printk(KERN_INFO "%s : ack_number = %d\n", __func__, ack_number);
 
 	if (ack_number == 6)
-<<<<<<< HEAD
-		return snprintf(buf, 1, "%d\n", 1);
-	else
-		return snprintf(buf, 1, "%d\n", 0);
-=======
 		return sprintf(buf, "1\n");
 	else
 		return sprintf(buf, "0\n");
->>>>>>> a5ddfda... drivers, without drivers/media + video + samsung
 }
 
 static DEVICE_ATTR(ir_send, 0664, remocon_show, remocon_store);
@@ -507,15 +483,11 @@ static int __devinit ir_remocon_probe(struct i2c_client *client,
 
 	i2c_set_clientdata(client, data);
 
-<<<<<<< HEAD
-	irda_fw_update(data);
-=======
 	for (i = 0; i < 6; i++) {
 		if (download_pass == 1)
 			break;
 		irda_fw_update(data);
 	}
->>>>>>> a5ddfda... drivers, without drivers/media + video + samsung
 /*
 	irda_read_device_info(data);
 */

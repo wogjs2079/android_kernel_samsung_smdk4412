@@ -16,7 +16,7 @@
  * the license of that module.  An independent module is a module which is not
  * derived from this software.  The special exception does not apply to any
  * modifications of the software.
- * 
+ *
  *      Notwithstanding the above, under no circumstances may you combine this
  * software in any way with any other Broadcom software provided under a license
  * other than the GPL, without Broadcom's express prior written consent.
@@ -115,6 +115,10 @@
 #ifdef CONFIG_MACH_P10
 #define READ_MACADDR
 #endif /* CONFIG_MACH_P10 */
+
+#if defined(CONFIG_MACH_M0) ||defined(CONFIG_MACH_C1) ||defined(CONFIG_MACH_T0)
+#define WL11U
+#endif
 
 #ifdef CONFIG_ARCH_MSM8960
 #undef WIFI_TURNOFF_DELAY

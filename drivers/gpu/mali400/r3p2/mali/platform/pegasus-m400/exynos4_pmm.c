@@ -290,7 +290,6 @@ static unsigned int GPU_MHZ	= 1000000;
 
 int  gpu_power_state;
 static int bPoweroff;
-atomic_t clk_active;
 
 #define MAX_MALI_DVFS_STEPS 5
 static _mali_osk_atomic_t bottomlock_status;
@@ -362,6 +361,7 @@ void mali_regulator_set_voltage(int min_uV, int max_uV)
 	if(IS_ERR_OR_NULL(g3d_regulator))
 	{
 		MALI_DEBUG_PRINT(1, ("error on mali_regulator_set_voltage : g3d_regulator is null\n"));
+		_mali_osk_lock_signal(mali_dvfs_lock, _MALI_OSK_LOCKMODE_RW);
 		return;
 	}
 	MALI_DEBUG_PRINT(1, ("= regulator_set_voltage: %d, %d \n",min_uV, max_uV));
@@ -539,9 +539,11 @@ void mali_clk_set_rate(unsigned int clk, unsigned int mhz)
 	_mali_osk_lock_wait(mali_dvfs_lock, _MALI_OSK_LOCKMODE_RW);
 	MALI_DEBUG_PRINT(3, ("Mali platform: Setting frequency to %d mhz\n", clk));
 
-	if (mali_clk_get() == MALI_FALSE)
-		return;
-
+	if (mali_clk_get() == MALI_FALSE) {
+		_mali_osk_lock_signal(mali_dvfs_lock, _MALI_OSK_LOCKMODE_RW);
+ 		return;
+	}
+	
 	if (bis_vpll)
 	{
 		/* in Pega-prime, vpll_src_clock means ext_xtal_clock!! */
@@ -551,7 +553,6 @@ void mali_clk_set_rate(unsigned int clk, unsigned int mhz)
 		clk_set_parent(vpll_src_clock, ext_xtal_clock);
 		clk_set_parent(sclk_vpll_clock, fout_vpll_clock);
 
-		clk_set_rate(fout_vpll_clock, (unsigned int)clk * GPU_MHZ);
 		clk_set_parent(mali_parent_clock, sclk_vpll_clock);
 		clk_set_parent(mali_clock, mali_parent_clock);
 	}
@@ -559,12 +560,6 @@ void mali_clk_set_rate(unsigned int clk, unsigned int mhz)
 	{
 		clk_set_parent(mali_parent_clock, mpll_clock);
 		clk_set_parent(mali_clock, mali_parent_clock);
-	}
-
-	if (atomic_read(&clk_active) == 0) {
-		if (clk_enable(mali_clock) < 0)
-			return;
-		atomic_set(&clk_active, 1);
 	}
 
 	err = clk_set_rate(mali_clock, rate);
@@ -578,7 +573,6 @@ void mali_clk_set_rate(unsigned int clk, unsigned int mhz)
 	mali_gpu_clk = (int)(rate / mhz);
 
 	mali_clk_put(MALI_FALSE);
-
 	_mali_osk_lock_signal(mali_dvfs_lock, _MALI_OSK_LOCKMODE_RW);
 }
 
@@ -629,7 +623,6 @@ static mali_bool set_mali_dvfs_status(u32 step,mali_bool boostup)
 			MALI_PROFILING_EVENT_REASON_SINGLE_GPU_FREQ_VOLT_CHANGE,
 			mali_gpu_clk, mali_gpu_vol/1000, 0, 0, 0);
 #endif
-	mali_clk_put(MALI_FALSE);
 
 #if MALI_DVFS_CLK_DEBUG
 	pRegMaliClkDiv = ioremap(0x1003c52c,32);
@@ -652,8 +645,8 @@ static mali_bool set_mali_dvfs_status(u32 step,mali_bool boostup)
 
 #if CPUFREQ_LOCK_DURING_440
 	/* lock/unlock CPU freq by Mali */
-	if (mali_dvfs[step].clock == 440)
-		err = cpufreq_lock_by_mali(1200);
+	if (mali_dvfs[step].clock >= 440)
+		err = cpufreq_lock_by_mali(800);
 	else
 		cpufreq_unlock_by_mali();
 #endif
@@ -1082,16 +1075,10 @@ static mali_bool deinit_mali_clock(void)
 static _mali_osk_errcode_t enable_mali_clocks(void)
 {
 	int err;
-
-	if (atomic_read(&clk_active) == 0) {
-		err = clk_enable(mali_clock);
-		MALI_DEBUG_PRINT(3,("enable_mali_clocks mali_clock %p error %d \n", mali_clock, err));
-		atomic_set(&clk_active, 1);
-		if (err >= 0)
-			atomic_set(&clk_active, 1);
-		gpu_power_state = 1;
-	}
-
+	
+	clk_enable(mali_clock);
+	gpu_power_state = 1;
+	
 	/* set clock rate */
 #ifdef CONFIG_MALI_DVFS
 	if (get_mali_dvfs_control_status() != 0 || mali_gpu_clk >= mali_runtime_resume.clk) {
@@ -1113,11 +1100,9 @@ static _mali_osk_errcode_t enable_mali_clocks(void)
 
 static _mali_osk_errcode_t disable_mali_clocks(void)
 {
-	if (atomic_read(&clk_active) == 1) {
-		clk_disable(mali_clock);
-		atomic_set(&clk_active, 0);
-		gpu_power_state = 0;
-	}
+	clk_disable(mali_clock);
+	gpu_power_state = 0;
+	
 	MALI_DEBUG_PRINT(3, ("disable_mali_clocks mali_clock %p \n", mali_clock));
 
 	MALI_SUCCESS;
@@ -1177,8 +1162,6 @@ _mali_osk_errcode_t g3d_power_domain_control(int bpower_on)
 _mali_osk_errcode_t mali_platform_init(struct device *dev)
 {
 	MALI_CHECK(init_mali_clock(), _MALI_OSK_ERR_FAULT);
-
-	atomic_set(&clk_active, 0);
 
 #ifdef CONFIG_MALI_DVFS
 	/* Create sysfs for time-in-state */
