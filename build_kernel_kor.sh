@@ -15,9 +15,9 @@ else
 fi
 
 if [ "$TARGET" = "m440s" ] ; then
-	displayversion=Devil3.4-0.5.3.A-$TARGET
+	displayversion=Devil3.4-0.5.3.C-$TARGET
 else
-	displayversion=Devil3.4-0.5.3.A-e210-$TARGET
+	displayversion=Devil3.4-0.5.3.C-e210-$TARGET
 fi
 
 version=$displayversion-dual-$(date +%Y%m%d)
