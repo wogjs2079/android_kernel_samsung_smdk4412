@@ -375,6 +375,9 @@ KBUILD_CFLAGS   := -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs \
 # L1/L2 cache size parameters by @JustArchi
 KBUILD_CFLAGS	+= --param l1-cache-size=32 --param l1-cache-line-size=32 --param l2-cache-size=1024
 
+# Implement CPU quad cores optimization by @JustArchi
+KBUILD_CFLAGS	+= -mvectorize-with-neon-quad
+
 KBUILD_AFLAGS_KERNEL :=
 KBUILD_CFLAGS_KERNEL :=
 KBUILD_AFLAGS   := -D__ASSEMBLY__
