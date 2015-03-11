@@ -1921,7 +1921,7 @@ static inline void adjust_freq_thresholds(unsigned int step)
 #endif /* ENABLE_HOTPLUGGING */
 }
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,4,0)
+#if 1 //LINUX_VERSION_CODE >= KERNEL_VERSION(3,4,0)
 static inline u64 get_cpu_idle_time_jiffy(unsigned int cpu, u64 *wall)
 {
 	u64 idle_time;
@@ -2548,7 +2548,7 @@ static ssize_t store_ignore_nice_load(struct kobject *a, struct attribute *b, co
 	}
 
 	// ZZ: we need to re-evaluate prev_cpu_idle
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,4,0)
+#if 1 //LINUX_VERSION_CODE >= KERNEL_VERSION(3,4,0)
 	for_each_online_cpu(j) {
 		 struct cpu_dbs_info_s *dbs_info;
 		 dbs_info = &per_cpu(cs_cpu_dbs_info, j);
@@ -3837,7 +3837,7 @@ static inline int set_profile(int profile_num)
 		dbs_tuners_ins.ignore_nice = zzmoove_profiles[i].ignore_nice_load;
 
 		// we need to re-evaluate prev_cpu_idle
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,4,0)
+#if 1 //LINUX_VERSION_CODE >= KERNEL_VERSION(3,4,0)
 		for_each_online_cpu(j) {
 		     struct cpu_dbs_info_s *dbs_info;
 		     dbs_info = &per_cpu(cs_cpu_dbs_info, j);
@@ -4787,7 +4787,7 @@ static void dbs_check_cpu(struct cpu_dbs_info_s *this_dbs_info)
 #else
 		     &cur_wall_time, 0);
 #endif
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,4,0)
+#if 1 //LINUX_VERSION_CODE >= KERNEL_VERSION(3,4,0)
 		wall_time = (unsigned int)
 				(cur_wall_time - j_dbs_info->prev_cpu_wall);
 #else
@@ -4796,7 +4796,7 @@ static void dbs_check_cpu(struct cpu_dbs_info_s *this_dbs_info)
 #endif
 		j_dbs_info->prev_cpu_wall = cur_wall_time;
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,4,0)
+#if 1 //LINUX_VERSION_CODE >= KERNEL_VERSION(3,4,0)
 		idle_time = (unsigned int)
 
 		(cur_idle_time - j_dbs_info->prev_cpu_idle);
@@ -4807,13 +4807,13 @@ static void dbs_check_cpu(struct cpu_dbs_info_s *this_dbs_info)
 		j_dbs_info->prev_cpu_idle = cur_idle_time;
 #endif
 		if (dbs_tuners_ins.ignore_nice) {
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,4,0)
+#if 1 //LINUX_VERSION_CODE >= KERNEL_VERSION(3,4,0)
 		    u64 cur_nice;
 #else
 		    cputime64_t cur_nice;
 #endif
 		    unsigned long cur_nice_jiffies;
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,4,0)
+#if 1 //LINUX_VERSION_CODE >= KERNEL_VERSION(3,4,0)
 		    cur_nice = kcpustat_cpu(j).cpustat[CPUTIME_NICE] -
 				 j_dbs_info->prev_cpu_nice;
 #else
@@ -4826,7 +4826,7 @@ static void dbs_check_cpu(struct cpu_dbs_info_s *this_dbs_info)
 		     */
 		    cur_nice_jiffies = (unsigned long)
 		    cputime64_to_jiffies64(cur_nice);
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,4,0)
+#if 1 //LINUX_VERSION_CODE >= KERNEL_VERSION(3,4,0)
 		    j_dbs_info->prev_cpu_nice = kcpustat_cpu(j).cpustat[CPUTIME_NICE];
 #else
 		    j_dbs_info->prev_cpu_nice = kstat_cpu(j).cpustat.nice;
@@ -5624,7 +5624,7 @@ static int cpufreq_governor_dbs(struct cpufreq_policy *policy,
 #endif
 			if (dbs_tuners_ins.ignore_nice) {
 			    j_dbs_info->prev_cpu_nice =
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,4,0)
+#if 1 //LINUX_VERSION_CODE >= KERNEL_VERSION(3,4,0)
 			    kcpustat_cpu(j).cpustat[CPUTIME_NICE];
 #else
 			    kstat_cpu(j).cpustat.nice;
