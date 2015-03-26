@@ -159,7 +159,7 @@ copy_libs
    	    	echo 7 > /proc/sys/kernel/rom_feature_set
 	    fi
 
-	    if [ "$1" == "lollipop" ] ; then
+	    if [ "$1" == "lollipop" ] || [ "$1" == "cm121" ] ; then
    	    	echo 5 > /proc/sys/kernel/rom_feature_set
 		echo "disabled selinux"
 		$BB mv -f /misc/lollipop/* /sbin/
@@ -212,8 +212,10 @@ if $BB grep -q ro.build.version.release=4.4 /system/build.prop; then
    fi
 elif $BB [ -f /system/framework/smartfaceservice.jar ]; then
    rom sammy43
-else
+elif $BB grep -q ro.build.version.release=5.0.2 /system/build.prop; then
    rom lollipop
+else
+   rom cm121
 fi
 
 if $BB [ -f /system/etc/init.d/15sensors ]; then
