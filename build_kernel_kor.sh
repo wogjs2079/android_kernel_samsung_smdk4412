@@ -427,7 +427,7 @@ lzma -9 $KERNEL_PATH/ramdisk.cpio
 cd $KERNEL_PATH
 
 # Make boot.img
-./mkbootimg --kernel zImage --ramdisk ramdisk.cpio.lzma --board smdk4x12 --cmdline 'ttySAC2,115200 androidboot.selinux=permissive' --base 0x10000000 --pagesize 2048 --ramdiskaddr 0x11000000 -o $KERNEL_PATH/boot.img
+./mkbootimg --kernel zImage --ramdisk ramdisk.cpio.lzma --board smdk4x12 --base 0x10000000 --pagesize 2048 --ramdiskaddr 0x11000000 -o $KERNEL_PATH/boot.img
 
 # Copy boot.img
 cp boot.img $KERNEL_PATH/ckh469/releasetools-$RELEASE/zip
