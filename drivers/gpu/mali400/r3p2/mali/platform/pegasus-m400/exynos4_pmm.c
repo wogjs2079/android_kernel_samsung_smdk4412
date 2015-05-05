@@ -645,8 +645,8 @@ static mali_bool set_mali_dvfs_status(u32 step,mali_bool boostup)
 
 #if CPUFREQ_LOCK_DURING_440
 	/* lock/unlock CPU freq by Mali */
-	if (mali_dvfs[step].clock >= 440)
-		err = cpufreq_lock_by_mali(800);
+	if (mali_dvfs[step].clock == 440)
+		err = cpufreq_lock_by_mali(1200);
 	else
 		cpufreq_unlock_by_mali();
 #endif

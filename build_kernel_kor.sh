@@ -15,9 +15,9 @@ else
 fi
 
 if [ "$TARGET" = "m440s" ] ; then
-	displayversion=Devil3.4-0.5.3.C-$TARGET
+	displayversion=Devil3.4-0.5.3.D-$TARGET
 else
-	displayversion=Devil3.4-0.5.3.C-e210-$TARGET
+	displayversion=Devil3.4-0.5.3.D-e210-$TARGET
 fi
 
 version=$displayversion-dual-$(date +%Y%m%d)
@@ -46,6 +46,10 @@ if [ "$2" = "latest" ] || [ "$3" = "latest" ]; then
 TOOLCHAIN_PATH="/opt/arm-cortex_a9-linux-gnueabihf-linaro_4.9/bin"
 TOOLCHAIN="$TOOLCHAIN_PATH/arm-cortex_a9-linux-gnueabihf-"
 cp -f Makefile.latest Makefile
+elif [ "$2" = "exp" ] || [ "$3" = "exp" ]; then
+TOOLCHAIN_PATH="/opt/arm-linux-androideabi-5.1/bin"
+TOOLCHAIN="$TOOLCHAIN_PATH/arm-eabi-"
+cp -f Makefile.experimental Makefile
 else
 TOOLCHAIN_PATH="toolchain/android-toolchain-eabi-4.9-2014.10/bin"
 TOOLCHAIN="$TOOLCHAIN_PATH/arm-eabi-"

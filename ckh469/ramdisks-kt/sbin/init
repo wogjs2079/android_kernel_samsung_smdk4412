@@ -148,6 +148,8 @@ echo "using $1 initramfs"
 	    $BB mv -f /misc/sbin2/* /sbin/
 	    if [ "$1" == "sammy444" ] ; then
 		$BB mv -f /misc/sbin444/* /sbin/
+            else
+		copy_libs
 	    fi
 	    $BB mv -f /misc/system/bin/* /system/bin/
 	    $BB chmod a+x /system/bin/sysinit
@@ -163,6 +165,8 @@ echo "using $1 initramfs"
    	    	echo 5 > /proc/sys/kernel/rom_feature_set
 		echo "disabled selinux"
 		$BB mv -f /misc/lollipop/* /sbin/
+            else
+		copy_libs
 	    fi
 
 	    $BB mkdir -p /system/lib/modules
@@ -214,8 +218,9 @@ elif $BB grep -q ro.build.version.release=5.1 /system/build.prop; then
       $BB grep -q ro.cm.version /system/build.prop ||
       $BB grep -q ro.pa.version /system/build.prop; then
    rom cm121
-else
+   else
    rom omni
+   fi
 fi
 
 if $BB [ -f /system/etc/init.d/15sensors ]; then
