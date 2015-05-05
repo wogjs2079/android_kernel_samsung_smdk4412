@@ -113,7 +113,7 @@ $BB chown root:root /system/lib/hw/sensors.smdk4x12.so
 ######### copy initramfs ###############################################
 rom() {
 echo "using $1 initramfs"
-copy_libs
+#copy_libs
 
 	$BB mv -f /roms/$1/* /
    if $BB grep -q 1 /sys/class/power_supply/battery/batt_lp_charging ; then
@@ -159,7 +159,7 @@ copy_libs
    	    	echo 7 > /proc/sys/kernel/rom_feature_set
 	    fi
 
-	    if [ "$1" == "lollipop" ] || [ "$1" == "cm121" ] ; then
+	    if [ "$1" == "cm121" ] || [ "$1" == "omni" ] ; then
    	    	echo 5 > /proc/sys/kernel/rom_feature_set
 		echo "disabled selinux"
 		$BB mv -f /misc/lollipop/* /sbin/
@@ -206,16 +206,16 @@ if $BB grep -q ro.build.version.release=4.4 /system/build.prop; then
       $BB grep -q ro.pa.version /system/build.prop; then
 	echo "rom seems to be cm based"
    	rom cm11
-   else
-	echo "rom does not seem to be based off cm"	
-   	rom omni
    fi
 elif $BB [ -f /system/framework/smartfaceservice.jar ]; then
    rom sammy43
-elif $BB grep -q ro.build.version.release=5.0.2 /system/build.prop; then
-   rom lollipop
-else
+elif $BB grep -q ro.build.version.release=5.1 /system/build.prop; then
+   if $BB grep -q cyanogenmod /system/build.prop ||
+      $BB grep -q ro.cm.version /system/build.prop ||
+      $BB grep -q ro.pa.version /system/build.prop; then
    rom cm121
+else
+   rom omni
 fi
 
 if $BB [ -f /system/etc/init.d/15sensors ]; then

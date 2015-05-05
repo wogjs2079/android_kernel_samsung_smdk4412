@@ -35,8 +35,34 @@ on init
     mkdir /tombstones
     symlink /efs /factory
 
-# ko files for FM Radio
-    insmod /system/lib/modules/Si4709_driver.ko
+on charger
+    mount ext4 /dev/block/platform/dw_mmc/by-name/SYSTEM /system ro wait noatime
+    mount ext4 /dev/block/platform/dw_mmc/by-name/USERDATA /data rw wait noatime nosuid nodev discard noauto_da_alloc journal_async_commit
+    mkdir /data/log 0777
+
+    chmod 0666 /dev/log/radio
+    chmod 0666 /dev/log/main
+    chmod 0666 /dev/log/event
+
+# EHCI runtime enable for LPA
+    write /sys/devices/platform/s5p-ehci/power/control auto
+
+    ifup lo
+    hostname localhost
+    domainname localdomain
+
+    class_start default
+
+service debuggerd /system/bin/debuggerd
+
+service ueventd /sbin/ueventd
+    critical
+
+service console /system/bin/sh
+    console
+
+service lpm /system/bin/lpm
+    critical
 
 on post-fs-data
      # we will remap this as /mnt/sdcard with the sdcard fuse tool
@@ -117,7 +143,6 @@ on post-fs-data
     chown root shell /dev/tspdrv
     chmod 0660 /sys/class/timed_output/vibrator/pwm_value
     chown system system /sys/class/timed_output/vibrator/pwm_value
-    chown system system /sys/vibrator/pwm_val
 
 # LED
     chmod 0660 /sys/class/sec/led/led_fade
@@ -128,6 +153,8 @@ on post-fs-data
     chown system system /sys/class/sec/sec_touchkey/timeout
     chmod 0660 /sys/class/sec/sec_touchkey/force_disable
     chown system system /sys/class/sec/sec_touchkey/force_disable
+    chmod 0660 /sys/class/sec/sec_touchkey/keypad_enable
+    chown system system /sys/class/sec/sec_touchkey/keypad_enable
 
 # S-Pen
     chown system system /sys/class/sec/sec_epen/epen_saving_mode
@@ -228,6 +255,7 @@ on post-fs-data
     chown system radio /sys/class/power_supply/battery/batt_vfocv
     chown system radio /sys/class/power_supply/battery/batt_lp_charging
     chown system radio /sys/class/power_supply/battery/batt_charging_source
+    chown system radio /sys/class/power_supply/battery/charging_enabled
     chown system radio /sys/class/power_supply/battery/test_mode
     chown system radio /sys/class/power_supply/battery/wc_status
     chown system radio /sys/class/power_supply/battery/wpc_pin_state
@@ -362,9 +390,9 @@ on post-fs-data
     chown system system /dev/ttyGS3
 
 # for wifi
-    mkdir /data/misc/wifi/sockets 0770 wifi wifi
     mkdir /data/misc/dhcp 0775 dhcp dhcp
     chown dhcp dhcp /data/misc/dhcp
+    chown wifi root /dev/rfkill
 
 # for TRP/TIS
     write /data/.psm.info 1
@@ -380,7 +408,6 @@ on boot
     setprop ro.build.product SHW-M440S
     setprop ro.product.device SHW-M440S
     setprop wifi.interface wlan0
-    write /sys/power/cpufreq_min_limit -1
 
 # fake some battery state
     setprop status.battery.state Slow
@@ -422,10 +449,18 @@ service sec_keyboard /system/bin/sec_keyboard /dev/ttySAC2
 on property:ro.uart_debug=0
 	start sec_keyboard
 
+service charger /sbin/healthd -c
+    class charger
+    critical
+    seclabel u:r:healthd:s0
+
 service p2p_supplicant /system/bin/wpa_supplicant \
-    -iwlan0 -Dnl80211 -c/data/misc/wifi/wpa_supplicant.conf -N \
-    -ip2p0 -Dnl80211 -c/data/misc/wifi/p2p_supplicant.conf -e/data/misc/wifi/entropy.bin \
-    -puse_p2p_group_interface=1 -O/data/misc/wifi/sockets -g@android:wpa_wlan0
+    -iwlan0 -Dnl80211 -c/data/misc/wifi/wpa_supplicant.conf \
+    -I/system/etc/wifi/wpa_supplicant_overlay.conf -N \
+    -ip2p0 -Dnl80211 -c/data/misc/wifi/p2p_supplicant.conf \
+    -I/system/etc/wifi/p2p_supplicant_overlay.conf \
+    -puse_p2p_group_interface=1 \
+    -e/data/misc/wifi/entropy.bin -g@android:wpa_wlan0
     #   we will start as root and wpa_supplicant will switch to user wifi
     #   after setting up the capabilities required for WEXT
     #   user wifi
@@ -436,8 +471,9 @@ service p2p_supplicant /system/bin/wpa_supplicant \
     oneshot
 
 service wpa_supplicant /system/bin/wpa_supplicant \
-    -Dnl80211 -iwlan0 -e/data/misc/wifi/entropy.bin \
-    -c/data/misc/wifi/wpa_supplicant.conf -O/data/misc/wifi/sockets -g@android:wpa_wlan0
+    -iwlan0 -Dnl80211 -c/data/misc/wifi/wpa_supplicant.conf \
+    -I/system/etc/wifi/wpa_supplicant_overlay.conf \
+    -e/data/misc/wifi/entropy.bin -g@android:wpa_wlan0
     #   we will start as root and wpa_supplicant will switch to user wifi
     #   after setting up the capabilities required for WEXT
     #   user wifi

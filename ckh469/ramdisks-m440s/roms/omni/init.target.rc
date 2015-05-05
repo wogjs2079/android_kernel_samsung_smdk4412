@@ -1,4 +1,7 @@
 on post-fs-data
+# ko files for FM Radio
+    insmod /system/lib/modules/Si4709_driver.ko
+
 # icd
     exec icd_check
     chown system system /dev/icd
@@ -59,11 +62,7 @@ service dmb /system/bin/dmbserver
     class main
     user system
     group radio inet misc audio camera graphics net_bt net_bt_admin sdcard_rw sdcard_r shell
-# TVout
-service TvoutService_C /system/bin/bintvoutservice
-    class main
-    user system
-    group graphics
 
-on property:ro.tvout.enable=false
-    stop TvoutService_C
+# LMK
+on property:init.svc.bootanim=stopped
+    write /sys/module/lowmemorykiller/parameters/minfree 12288,15360,18432,21504,24576,30720
